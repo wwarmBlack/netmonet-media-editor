@@ -10,6 +10,22 @@ const PT_PER_MM = 2.8346456693;
 /** work at a higher internal resolution than the raw pt-sized source so editing/zooming stays crisp */
 const EDIT_SCALE = 4;
 
+function computeArcPath(w: number, h: number, sweepDeg: number): string {
+  const cx = w / 2;
+  const cy = h / 2;
+  const r = Math.min(w, h) * 0.42;
+  const half = sweepDeg / 2;
+  const toRad = (deg: number) => (deg * Math.PI) / 180;
+  const point = (deg: number) => ({
+    x: cx + r * Math.sin(toRad(deg)),
+    y: cy - r * Math.cos(toRad(deg)),
+  });
+  const p1 = point(-half);
+  const p2 = point(half);
+  const largeArc = sweepDeg > 180 ? 1 : 0;
+  return `M ${p1.x},${p1.y} A ${r},${r} 0 ${largeArc},1 ${p2.x},${p2.y}`;
+}
+
 function buildLayersFromFace(face: FaceDef, w: number, h: number): Layer[] {
   return face.layers.map((spec) => {
     if (spec.kind === 'text') {
@@ -17,15 +33,15 @@ function buildLayersFromFace(face: FaceDef, w: number, h: number): Layer[] {
         id: spec.id,
         kind: 'text',
         text: spec.text,
-        x: spec.arcData ? 0 : spec.xf * w,
-        y: spec.arcData ? 0 : spec.yf * h,
+        x: spec.arc ? 0 : spec.xf * w,
+        y: spec.arc ? 0 : spec.yf * h,
         width: spec.wf * w,
         fontSize: spec.fontSizeF * w,
         fontStyle: spec.fontStyle,
         align: spec.align,
         fill: spec.fill,
         rotation: spec.rotation ?? 0,
-        arcPath: spec.arcData,
+        arcPath: spec.arc ? computeArcPath(w, h, spec.arc.sweepDeg) : undefined,
       };
       return layer;
     }

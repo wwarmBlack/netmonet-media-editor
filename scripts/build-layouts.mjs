@@ -154,7 +154,7 @@ function processFile(productId, faceId, filename) {
           fill: style.fill || '#000000',
           fontStyle: isBold(style.fontFamily) ? 'bold' : 'normal',
           rotation: 0,
-          arcData: computeArcPath(vbW, vbH, 250),
+          arc: { sweepDeg: 250 },
         });
       }
       textEl.remove();

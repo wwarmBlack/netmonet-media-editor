@@ -12,8 +12,8 @@ export interface TextSpec {
   fill: string;
   fontStyle: 'normal' | 'bold';
   rotation?: number;
-  /** raw SVG path 'd', in the face's own widthPx/heightPx coordinate space */
-  arcData?: string;
+  /** render along a circular arc instead of a straight line */
+  arc?: { sweepDeg: number };
 }
 
 export interface ImageSpec {

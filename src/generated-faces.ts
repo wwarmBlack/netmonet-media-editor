@@ -170,7 +170,9 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
           "fill": "#FFFFFF",
           "fontStyle": "bold",
           "rotation": 0,
-          "arcData": "M 29.00647788561748,117.61079987267331 A 66.6708,66.6708 0 1,1 138.23352211438254,117.61079987267331"
+          "arc": {
+            "sweepDeg": 250
+          }
         },
         {
           "kind": "text",
