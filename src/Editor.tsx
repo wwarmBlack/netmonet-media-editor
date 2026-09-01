@@ -196,6 +196,24 @@ export default function Editor({ product, onBack }: { product: ProductDef; onBac
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [product.id, faceIndex]);
 
+  const [fitScale, setFitScale] = useState(1);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const recompute = () => {
+      const pad = 32;
+      const availW = el.clientWidth - pad;
+      const availH = el.clientHeight - pad;
+      const scale = Math.min(1, availW / w, availH / h);
+      setFitScale(scale > 0 ? scale : 1);
+    };
+    recompute();
+    const ro = new ResizeObserver(recompute);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [w, h]);
+
   function applySizeChange(newWmm: number) {
     const newW = newWmm * PT_PER_MM * EDIT_SCALE;
     const ratio = newW / prevSize.current.w;
@@ -312,6 +330,8 @@ export default function Editor({ product, onBack }: { product: ProductDef; onBac
 
       <div className="workspace">
         <div className="canvas-wrap" ref={containerRef}>
+          <div style={{ width: w * fitScale, height: h * fitScale }}>
+            <div style={{ width: w, height: h, transform: `scale(${fitScale})`, transformOrigin: 'top left' }}>
           <Stage
             ref={stageRef}
             width={w}
@@ -394,6 +414,8 @@ export default function Editor({ product, onBack }: { product: ProductDef; onBac
               />
             </KonvaLayer>
           </Stage>
+            </div>
+          </div>
 
           {editingText && (
             <textarea

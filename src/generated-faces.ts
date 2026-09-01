@@ -211,7 +211,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
       "layers": [
         {
           "kind": "image",
-          "id": "deco18",
+          "id": "deco17",
           "label": "Графика 1",
           "xf": 0,
           "yf": 0,
@@ -235,21 +235,8 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
           "rotation": 0
         },
         {
-          "kind": "text",
-          "id": "t16",
-          "text": "01",
-          "xf": 1.2235595014111007,
-          "yf": 0.9433850746268657,
-          "wf": 3,
-          "fontSizeF": 0.041157102539981186,
-          "align": "left",
-          "fill": "#000000",
-          "fontStyle": "normal",
-          "rotation": 0
-        },
-        {
           "kind": "image",
-          "id": "qr17",
+          "id": "qr16",
           "label": "QR-код",
           "xf": 0.1666656867356538,
           "yf": 0.5388306648575305,
@@ -271,7 +258,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
       "layers": [
         {
           "kind": "image",
-          "id": "deco21",
+          "id": "deco20",
           "label": "Графика 1",
           "xf": 0,
           "yf": 0,
@@ -283,7 +270,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
         },
         {
           "kind": "image",
-          "id": "deco22",
+          "id": "deco21",
           "label": "Графика 2",
           "xf": 0,
           "yf": 0,
@@ -295,7 +282,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
         },
         {
           "kind": "image",
-          "id": "deco23",
+          "id": "deco22",
           "label": "Графика 3",
           "xf": 0,
           "yf": 0,
@@ -307,7 +294,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
         },
         {
           "kind": "image",
-          "id": "deco24",
+          "id": "deco23",
           "label": "Графика 4",
           "xf": 0,
           "yf": 0,
@@ -319,7 +306,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
         },
         {
           "kind": "image",
-          "id": "deco25",
+          "id": "deco24",
           "label": "Графика 5",
           "xf": 0,
           "yf": 0,
@@ -331,7 +318,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
         },
         {
           "kind": "image",
-          "id": "deco26",
+          "id": "deco25",
           "label": "Графика 6",
           "xf": 0,
           "yf": 0,
@@ -343,7 +330,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
         },
         {
           "kind": "text",
-          "id": "t19",
+          "id": "t18",
           "text": "01",
           "xf": 0.47116982995837153,
           "yf": 0.39315374303252665,
@@ -356,7 +343,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
         },
         {
           "kind": "text",
-          "id": "t20",
+          "id": "t19",
           "text": "1234567",
           "xf": 0.3968101319410146,
           "yf": 0.5642607775347492,
@@ -380,7 +367,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
       "layers": [
         {
           "kind": "image",
-          "id": "deco29",
+          "id": "deco27",
           "label": "Графика 1",
           "xf": 0,
           "yf": 0,
@@ -392,7 +379,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
         },
         {
           "kind": "image",
-          "id": "deco30",
+          "id": "deco28",
           "label": "Графика 2",
           "xf": 0,
           "yf": 0,
@@ -404,7 +391,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
         },
         {
           "kind": "image",
-          "id": "deco31",
+          "id": "deco29",
           "label": "Графика 3",
           "xf": 0,
           "yf": 0,
@@ -416,7 +403,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
         },
         {
           "kind": "image",
-          "id": "deco32",
+          "id": "deco30",
           "label": "Графика 4",
           "xf": 0,
           "yf": 0,
@@ -428,7 +415,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
         },
         {
           "kind": "image",
-          "id": "deco33",
+          "id": "deco31",
           "label": "Графика 5",
           "xf": 0,
           "yf": 0,
@@ -440,7 +427,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
         },
         {
           "kind": "image",
-          "id": "deco34",
+          "id": "deco32",
           "label": "Графика 6",
           "xf": 0,
           "yf": 0,
@@ -452,20 +439,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
         },
         {
           "kind": "text",
-          "id": "t27",
-          "text": "01",
-          "xf": 1.5150382173095014,
-          "yf": 1.4332637582314203,
-          "wf": 3,
-          "fontSizeF": 0.041157102539981186,
-          "align": "left",
-          "fill": "#000000",
-          "fontStyle": "normal",
-          "rotation": 0
-        },
-        {
-          "kind": "text",
-          "id": "t28",
+          "id": "t26",
           "text": "Оплата заказа.\nЧаевые.\nОтзыв.",
           "xf": 0.1700376293508937,
           "yf": 0.32365533866415797,
@@ -489,7 +463,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
       "layers": [
         {
           "kind": "image",
-          "id": "deco39",
+          "id": "deco37",
           "label": "Графика 1",
           "xf": 0,
           "yf": 0,
@@ -501,7 +475,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
         },
         {
           "kind": "text",
-          "id": "t35",
+          "id": "t33",
           "text": "Оплата заказа.\nЧаевые. Отзыв.",
           "xf": 0.19066027751646283,
           "yf": 0.09358184383819376,
@@ -514,7 +488,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
         },
         {
           "kind": "text",
-          "id": "t36",
+          "id": "t34",
           "text": "Оплатите заказ без официанта.\nЦеликом или только свою часть.",
           "xf": 0.16244473189087485,
           "yf": 0.24447162119786767,
@@ -527,7 +501,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
         },
         {
           "kind": "text",
-          "id": "t37",
+          "id": "t35",
           "text": "1234567- 01",
           "xf": 0.14957802210724364,
           "yf": 0.6492125274380685,
@@ -540,7 +514,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
         },
         {
           "kind": "image",
-          "id": "qr38",
+          "id": "qr36",
           "label": "QR-код",
           "xf": 0.20833196142991534,
           "yf": 0.3677751646284102,
@@ -562,7 +536,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
       "layers": [
         {
           "kind": "image",
-          "id": "deco45",
+          "id": "deco43",
           "label": "Графика 1",
           "xf": 0,
           "yf": 0,
@@ -574,7 +548,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
         },
         {
           "kind": "image",
-          "id": "deco46",
+          "id": "deco44",
           "label": "Рамка",
           "xf": 0,
           "yf": 0,
@@ -586,7 +560,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
         },
         {
           "kind": "text",
-          "id": "t40",
+          "id": "t38",
           "text": "07",
           "xf": 0.7273056400758476,
           "yf": 0.44065793535300085,
@@ -599,7 +573,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
         },
         {
           "kind": "text",
-          "id": "t41",
+          "id": "t39",
           "text": "Оплата заказа.\nЧаевые. Отзыв.",
           "xf": 0.07875248048683688,
           "yf": 0.08596286986814836,
@@ -612,7 +586,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
         },
         {
           "kind": "text",
-          "id": "t42",
+          "id": "t40",
           "text": "Оплатите заказ без\nофицианта. Целиком\nили только свою часть.",
           "xf": 0.08313533536182034,
           "yf": 0.702954976407814,
@@ -625,7 +599,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
         },
         {
           "kind": "text",
-          "id": "t43",
+          "id": "t41",
           "text": "1234567",
           "xf": 0.9556841733915421,
           "yf": 0.6186669312519292,
@@ -638,7 +612,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
         },
         {
           "kind": "image",
-          "id": "qr44",
+          "id": "qr42",
           "label": "QR-код",
           "xf": 0.6137046346518499,
           "yf": 0.541025708868016,
@@ -660,7 +634,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
       "layers": [
         {
           "kind": "image",
-          "id": "deco52",
+          "id": "deco50",
           "label": "Графика 1",
           "xf": 0,
           "yf": 0,
@@ -672,7 +646,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
         },
         {
           "kind": "image",
-          "id": "deco53",
+          "id": "deco51",
           "label": "Рамка",
           "xf": 0,
           "yf": 0,
@@ -684,7 +658,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
         },
         {
           "kind": "text",
-          "id": "t47",
+          "id": "t45",
           "text": "07",
           "xf": 0.7277470564889535,
           "yf": 0.44065793535300085,
@@ -697,7 +671,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
         },
         {
           "kind": "text",
-          "id": "t48",
+          "id": "t46",
           "text": "Оплата заказа.\nЧаевые. Отзыв.",
           "xf": 0.07875248048683688,
           "yf": 0.08596286986814836,
@@ -710,7 +684,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
         },
         {
           "kind": "text",
-          "id": "t49",
+          "id": "t47",
           "text": "Оплатите заказ без\nофицианта. Целиком\nили только свою часть.",
           "xf": 0.08313533536182034,
           "yf": 0.702954976407814,
@@ -723,7 +697,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
         },
         {
           "kind": "text",
-          "id": "t50",
+          "id": "t48",
           "text": "1234567",
           "xf": 0.9556841733915421,
           "yf": 0.6163703311725537,
@@ -736,7 +710,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
         },
         {
           "kind": "image",
-          "id": "qr51",
+          "id": "qr49",
           "label": "QR-код",
           "xf": 0.6137046346518499,
           "yf": 0.541025708868016,
@@ -758,7 +732,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
       "layers": [
         {
           "kind": "image",
-          "id": "deco59",
+          "id": "deco57",
           "label": "Графика 1",
           "xf": 0,
           "yf": 0,
@@ -770,7 +744,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
         },
         {
           "kind": "image",
-          "id": "deco60",
+          "id": "deco58",
           "label": "Графика 2",
           "xf": 0,
           "yf": 0,
@@ -782,7 +756,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
         },
         {
           "kind": "text",
-          "id": "t54",
+          "id": "t52",
           "text": "01",
           "xf": 0.2743257318046281,
           "yf": 0.14817665120533088,
@@ -795,7 +769,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
         },
         {
           "kind": "text",
-          "id": "t55",
+          "id": "t53",
           "text": "111222",
           "xf": 0.2461458989542648,
           "yf": 0.8062200300516104,
@@ -808,7 +782,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
         },
         {
           "kind": "text",
-          "id": "t56",
+          "id": "t54",
           "text": "Оплата заказа.\nЧаевые. Отзыв.",
           "xf": 0.5199143253118307,
           "yf": 0.3435493565035605,
@@ -821,7 +795,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
         },
         {
           "kind": "text",
-          "id": "t57",
+          "id": "t55",
           "text": "Оплатите заказ без официанта.\nЦеликом или только свою часть.",
           "xf": 0.5195615471840745,
           "yf": 0.5700966877899001,
@@ -834,7 +808,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
         },
         {
           "kind": "image",
-          "id": "qr58",
+          "id": "qr56",
           "label": "QR-код",
           "xf": 0.1495506278610726,
           "yf": 0.27394590710132616,

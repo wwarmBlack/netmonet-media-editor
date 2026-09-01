@@ -187,7 +187,7 @@ function processFile(productId, faceId, filename) {
     const x = tx + firstX - c * offset;
     const y = ty - d * offset;
 
-    if (x / vbW < -0.4 || x / vbW > 1.6 || y / vbH < -0.4 || y / vbH > 1.6) continue;
+    if (x / vbW < -0.08 || x / vbW > 1.08 || y / vbH < -0.08 || y / vbH > 1.08) continue;
 
     layers.push({
       kind: 'text',

@@ -27,6 +27,7 @@ const EXTRA_FACES: Record<string, FaceDef[]> = {
       widthMm: 50,
       heightMm: 50,
       layers: [
+        whiteBg(),
         text({ id: 'title', text: 'Меню.\nОплата заказа.\nЧаевые.', xf: 0.1, yf: 0.32, wf: 0.8, fontSizeF: 0.095, align: 'center', fill: ink, fontStyle: 'bold' }),
       ],
     },
@@ -38,6 +39,7 @@ const EXTRA_FACES: Record<string, FaceDef[]> = {
       widthMm: 50,
       heightMm: 50,
       layers: [
+        whiteBg(),
         image({ id: 'qr', label: 'QR-код', xf: 0.21, yf: 0.12, wf: 0.58, hf: 0.58, defaultSrc: null, opacity: 1 }),
         text({ id: 'logo', text: 'нетмонет', xf: 0.2, yf: 0.79, wf: 0.6, fontSizeF: 0.09, align: 'center', fill: ink, fontStyle: 'bold' }),
       ],
@@ -52,6 +54,7 @@ const EXTRA_FACES: Record<string, FaceDef[]> = {
       widthMm: 60,
       heightMm: 60,
       layers: [
+        whiteBg(),
         text({ id: 'title', text: 'Оплата заказа.\nЧаевые.\nОтзыв.', xf: 0.1, yf: 0.14, wf: 0.8, fontSizeF: 0.095, align: 'center', fill: ink, fontStyle: 'bold' }),
       ],
     },
@@ -63,6 +66,7 @@ const EXTRA_FACES: Record<string, FaceDef[]> = {
       widthMm: 60,
       heightMm: 60,
       layers: [
+        whiteBg(),
         image({ id: 'qr', label: 'QR-код', xf: 0.21, yf: 0.1, wf: 0.58, hf: 0.58, defaultSrc: null, opacity: 1 }),
         text({ id: 'logo', text: 'нетмонет', xf: 0.2, yf: 0.79, wf: 0.6, fontSizeF: 0.09, align: 'center', fill: ink, fontStyle: 'bold' }),
       ],
@@ -75,7 +79,21 @@ const EXTRA_FACES: Record<string, FaceDef[]> = {
       widthMm: 60,
       heightMm: 60,
       layers: [
+        whiteBg(),
         text({ id: 'tagline', text: 'Сканируй.\nПлати.\nБлагодари.', xf: 0.1, yf: 0.12, wf: 0.8, fontSizeF: 0.105, align: 'center', fill: ink, fontStyle: 'bold' }),
+      ],
+    },
+    {
+      id: 'number',
+      label: 'Номер',
+      widthPx: 170.08,
+      heightPx: 170.08,
+      widthMm: 60,
+      heightMm: 60,
+      layers: [
+        whiteBg(),
+        text({ id: 'num', text: '01', xf: 0.3, yf: 0.37, wf: 0.4, fontSizeF: 0.06, align: 'center', fill: ink, fontStyle: 'normal' }),
+        text({ id: 'code', text: '1234567', xf: 0.2, yf: 0.53, wf: 0.6, fontSizeF: 0.055, align: 'center', fill: ink, fontStyle: 'normal' }),
       ],
     },
   ],
@@ -100,8 +118,8 @@ const META: Record<string, { name: string; description: string; resizableCanvas?
   azau: { name: 'Азау', description: 'Тейбл-тент из оргстекла и дерева, 50×80 мм' },
   onix: { name: 'Оникс', description: 'Круглый акрил на подставке, Ø 59 мм' },
   amfora: { name: 'Амфора', description: 'Тейбл-тент, 60×130 мм', stackedFaces: true },
-  'rubikon-50': { name: 'Рубикон 50', description: 'Деревянный куб 50×50×50 мм' },
-  'rubikon-60': { name: 'Рубикон 60', description: 'Деревянный куб 60×60×60 мм' },
+  'rubikon-50': { name: 'Рубикон 50', description: 'Деревянный куб 50×50×50 мм', stackedFaces: true },
+  'rubikon-60': { name: 'Рубикон 60', description: 'Деревянный куб 60×60×60 мм', stackedFaces: true },
   arktika: { name: 'Арктика', description: 'Прозрачный тейбл-тент, 60×90 мм' },
   'naklejka-white': { name: 'Наклейка (белая)', description: 'Износостойкая наклейка, 80×80 мм', resizableCanvas: true },
   'naklejka-black': { name: 'Наклейка (чёрная)', description: 'Износостойкая наклейка, 80×80 мм', resizableCanvas: true },
@@ -130,6 +148,9 @@ const FACE_LABELS: Record<string, string> = {
 // there's no explicit background rect to extract, so inject one to match the physical product.
 const FORCE_BG: Record<string, string> = {
   amfora: '#ffffff',
+  'rubikon-50': '#ffffff',
+  'rubikon-60': '#ffffff',
+  arktika: '#ffffff',
   'naklejka-white': '#ffffff',
   'naklejka-black': '#0c0c0c',
 };
@@ -168,7 +189,11 @@ export const PRODUCTS: ProductDef[] = ORDER.map((id) => {
     }));
   }
 
-  let faces = [...extra.filter((f) => f.id === 'title' || f.id === 'qr' || f.id === 'tagline'), ...generated, ...extra.filter((f) => f.id === 'back')];
+  // rubikon-60's exported SVG happened to capture the title artboard a second time (not the
+  // number face) — the hand-built EXTRA_FACES set already covers all 4 faces, so skip the duplicate.
+  if (id === 'rubikon-60') generated = [];
+
+  let faces = [...extra.filter((f) => f.id === 'title' || f.id === 'qr' || f.id === 'tagline' || f.id === 'number'), ...generated, ...extra.filter((f) => f.id === 'back')];
   if (id === 'amfora') {
     // stacked view reads top-to-bottom: back side above the front
     faces = [...faces].reverse();
