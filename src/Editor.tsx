@@ -7,6 +7,8 @@ import { useHtmlImage } from './useImage';
 
 const TARGET_DPI = 300;
 const PT_PER_MM = 2.8346456693;
+/** work at a higher internal resolution than the raw pt-sized source so editing/zooming stays crisp */
+const EDIT_SCALE = 4;
 
 function buildLayersFromFace(face: FaceDef, w: number, h: number): Layer[] {
   return face.layers.map((spec) => {
@@ -109,10 +111,10 @@ export default function Editor({ product, onBack }: { product: ProductDef; onBac
   const [faceIndex, setFaceIndex] = useState(0);
   const face = product.faces[faceIndex];
 
-  const [sizePx, setSizePx] = useState({ w: face.widthPx, h: face.heightPx });
+  const [sizePx, setSizePx] = useState({ w: face.widthPx * EDIT_SCALE, h: face.heightPx * EDIT_SCALE });
   const w = sizePx.w;
   const h = sizePx.h;
-  const sizeMm = { w: w / PT_PER_MM, h: h / PT_PER_MM };
+  const sizeMm = { w: w / PT_PER_MM / EDIT_SCALE, h: h / PT_PER_MM / EDIT_SCALE };
 
   const [layers, setLayers] = useState<Layer[]>(() => buildLayersFromFace(face, w, h));
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -135,8 +137,8 @@ export default function Editor({ product, onBack }: { product: ProductDef; onBac
   }, [product.id]);
 
   useEffect(() => {
-    const fw = face.widthPx;
-    const fh = face.heightPx;
+    const fw = face.widthPx * EDIT_SCALE;
+    const fh = face.heightPx * EDIT_SCALE;
     setSizePx({ w: fw, h: fh });
     setLayers(buildLayersFromFace(face, fw, fh));
     setSelectedId(null);
@@ -145,7 +147,7 @@ export default function Editor({ product, onBack }: { product: ProductDef; onBac
   }, [product.id, faceIndex]);
 
   function applySizeChange(newWmm: number) {
-    const newW = newWmm * PT_PER_MM;
+    const newW = newWmm * PT_PER_MM * EDIT_SCALE;
     const ratio = newW / prevSize.current.w;
     const newH = prevSize.current.h * ratio;
     setLayers((prev) =>
@@ -200,7 +202,7 @@ export default function Editor({ product, onBack }: { product: ProductDef; onBac
     const wasSelected = selectedId;
     setSelectedId(null);
     requestAnimationFrame(() => {
-      const pixelRatio = TARGET_DPI / 72;
+      const pixelRatio = TARGET_DPI / 72 / EDIT_SCALE;
       const dataUrl = stage.toDataURL({ pixelRatio, mimeType: 'image/png' });
       const link = document.createElement('a');
       link.download = `${product.id}-${face.id}-${Math.round(sizeMm.w)}x${Math.round(sizeMm.h)}.png`;
