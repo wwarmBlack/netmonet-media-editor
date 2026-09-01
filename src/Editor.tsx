@@ -144,14 +144,38 @@ function buildStackedLayout(product: ProductDef): { w: number; h: number; layers
   return { w: maxW, h: Math.max(0, cursorY - STACK_GAP), layers: merged };
 }
 
+function buildGridLayout(product: ProductDef): { w: number; h: number; layers: Layer[] } {
+  const cellW = Math.max(...product.faces.map((f) => f.widthPx)) * EDIT_SCALE;
+  const cellH = Math.max(...product.faces.map((f) => f.heightPx)) * EDIT_SCALE;
+  const stepX = cellW + STACK_GAP;
+  const stepY = cellH + STACK_GAP;
+  const maxCol = Math.max(...product.faces.map((f) => f.gridCol ?? 0));
+  const maxRow = Math.max(...product.faces.map((f) => f.gridRow ?? 0));
+  const merged: Layer[] = [];
+  for (const f of product.faces) {
+    const fw = f.widthPx * EDIT_SCALE;
+    const fh = f.heightPx * EDIT_SCALE;
+    const offX = (f.gridCol ?? 0) * stepX;
+    const offY = (f.gridRow ?? 0) * stepY;
+    for (const l of buildLayersFromFace(f, fw, fh)) {
+      merged.push({ ...l, x: l.x + offX, y: l.y + offY } as Layer);
+    }
+  }
+  return { w: (maxCol + 1) * stepX - STACK_GAP, h: (maxRow + 1) * stepY - STACK_GAP, layers: merged };
+}
+
 export default function Editor({ product, onBack }: { product: ProductDef; onBack: () => void }) {
   const isStacked = !!product.stackedFaces;
+  const isGrid = !!product.gridLayout;
+  const isCombined = isStacked || isGrid;
   const [faceIndex, setFaceIndex] = useState(0);
   const face = product.faces[faceIndex];
 
   const initial = isStacked
     ? buildStackedLayout(product)
-    : { w: face.widthPx * EDIT_SCALE, h: face.heightPx * EDIT_SCALE, layers: null as Layer[] | null };
+    : isGrid
+      ? buildGridLayout(product)
+      : { w: face.widthPx * EDIT_SCALE, h: face.heightPx * EDIT_SCALE, layers: null as Layer[] | null };
 
   const [sizePx, setSizePx] = useState({ w: initial.w, h: initial.h });
   const w = sizePx.w;
@@ -179,8 +203,8 @@ export default function Editor({ product, onBack }: { product: ProductDef; onBac
   }, [product.id]);
 
   useEffect(() => {
-    if (isStacked) {
-      const combined = buildStackedLayout(product);
+    if (isStacked || isGrid) {
+      const combined = isStacked ? buildStackedLayout(product) : buildGridLayout(product);
       setSizePx({ w: combined.w, h: combined.h });
       setLayers(combined.layers);
       setSelectedId(null);
@@ -273,7 +297,7 @@ export default function Editor({ product, onBack }: { product: ProductDef; onBac
       const pixelRatio = TARGET_DPI / 72 / EDIT_SCALE;
       const dataUrl = stage.toDataURL({ pixelRatio, mimeType: 'image/png' });
       const link = document.createElement('a');
-      link.download = `${product.id}-${isStacked ? 'both' : face.id}-${Math.round(sizeMm.w)}x${Math.round(sizeMm.h)}.png`;
+      link.download = `${product.id}-${isCombined ? 'all' : face.id}-${Math.round(sizeMm.w)}x${Math.round(sizeMm.h)}.png`;
       link.href = dataUrl;
       link.click();
       if (wasSelected) setSelectedId(wasSelected);
@@ -299,7 +323,7 @@ export default function Editor({ product, onBack }: { product: ProductDef; onBac
         </button>
         <div className="toolbar-title">{product.name}</div>
 
-        {!isStacked && product.faces.length > 1 && (
+        {!isCombined && product.faces.length > 1 && (
           <div className="face-tabs">
             {product.faces.map((f, i) => (
               <button key={f.id} className={i === faceIndex ? 'active' : ''} onClick={() => setFaceIndex(i)}>

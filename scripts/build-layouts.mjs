@@ -17,7 +17,6 @@ const FILES = [
   ['azau', 'main', '50х80 - Азау.svg'],
   ['onix', 'main', '59мм -Оникс_счёт.svg'],
   ['amfora', 'front', '60х130 - Амфора.svg'],
-  ['rubikon-50', 'number', '50х50х50 - рубикон.svg'],
   ['rubikon-60', 'number', '60х60х60 - рубикон.svg'],
   ['arktika', 'main', '60х90_Арктика-new.svg'],
   ['naklejka-white', 'main', '80х80- наклейка_белая.svg'],
@@ -29,6 +28,30 @@ function parseMatrix(str) {
   const [a, b, c, d, e, f] = str.trim().split(/[ ,]+/).map(Number);
   const rotation = (Math.atan2(b, a) * 180) / Math.PI;
   return { a, b, c, d, e, f, rotation };
+}
+
+// Illustrator emits either `matrix(a b c d e f)` or `translate(tx ty) scale(sx sy)` — handle both.
+function parseTransform(str) {
+  if (!str) return { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0, rotation: 0 };
+  const mm = /matrix\(([^)]+)\)/.exec(str);
+  if (mm) return parseMatrix(mm[1]);
+  let a = 1;
+  let d = 1;
+  let e = 0;
+  let f = 0;
+  const t = /translate\(([^)]+)\)/.exec(str);
+  if (t) {
+    const parts = t[1].trim().split(/[ ,]+/).map(Number);
+    e = parts[0] ?? 0;
+    f = parts[1] ?? 0;
+  }
+  const s = /scale\(([^)]+)\)/.exec(str);
+  if (s) {
+    const parts = s[1].trim().split(/[ ,]+/).map(Number);
+    a = parts[0] ?? 1;
+    d = parts.length > 1 ? parts[1] : parts[0];
+  }
+  return { a, b: 0, c: 0, d, e, f, rotation: 0 };
 }
 
 function buildStyleMap(styleText) {
@@ -125,15 +148,12 @@ function processFile(productId, faceId, filename) {
     let c = 0;
     let d = 1;
     if (transformAttr) {
-      const mm = /matrix\(([^)]+)\)/.exec(transformAttr);
-      if (mm) {
-        const m = parseMatrix(mm[1]);
-        tx = m.e;
-        ty = m.f;
-        rotation = m.rotation;
-        c = m.c;
-        d = m.d;
-      }
+      const m = parseTransform(transformAttr);
+      tx = m.e;
+      ty = m.f;
+      rotation = m.rotation;
+      c = m.c;
+      d = m.d;
     }
 
     const textPathEl = textEl.querySelector('textpath');
@@ -166,14 +186,41 @@ function processFile(productId, faceId, filename) {
     const style = resolveTextStyle(textEl, styleMap);
     let firstX = 0;
     if (tspans.length > 0) {
+      // group consecutive tspans (plus any bare leading text) by their y — multiple tspans can
+      // share one visual line (kerning/style spans), only a new y starts a new line
       const lines = [];
-      tspans.forEach((tspan, i) => {
-        lines.push(tspan.text);
-        if (i === 0) {
-          firstX = parseFloat(tspan.getAttribute('x') || '0');
-          Object.assign(style, resolveTextStyle(tspan, styleMap));
+      let currentY = null;
+      let firstTspanSeen = false;
+      for (const child of textEl.childNodes) {
+        if (child.nodeType === 3 /* text node */) {
+          const t = child.rawText ?? child.text ?? '';
+          if (t.trim()) {
+            if (lines.length === 0) lines.push('');
+            lines[lines.length - 1] += t;
+          }
+          continue;
         }
-      });
+        if (!child.tagName || child.tagName.toLowerCase() !== 'tspan') continue;
+        const y = child.getAttribute('y');
+        if (!firstTspanSeen) {
+          // if bare text already started line 1, it began at x=0 (implicit); otherwise this
+          // tspan IS line 1's start, so its own x is the true line-start offset
+          firstX = lines.length === 0 ? parseFloat(child.getAttribute('x') || '0') : 0;
+          Object.assign(style, resolveTextStyle(child, styleMap));
+          firstTspanSeen = true;
+          if (lines.length > 0 && y === '0') {
+            // this tspan continues the bare leading-text line rather than starting a new one
+            currentY = y;
+            lines[lines.length - 1] += child.text;
+            continue;
+          }
+        }
+        if (y !== currentY || lines.length === 0) {
+          lines.push('');
+          currentY = y;
+        }
+        lines[lines.length - 1] += child.text;
+      }
       content = lines.join('\n');
     } else {
       content = textEl.text.trim();
@@ -213,9 +260,8 @@ function processFile(productId, faceId, filename) {
     const opacity = opacityMatch ? parseFloat(opacityMatch[1]) : 1;
     if (opacity < 0.9) continue;
     const transformAttr = img.getAttribute('transform');
-    const mm = transformAttr && /matrix\(([^)]+)\)/.exec(transformAttr);
-    if (!mm) continue;
-    const m = parseMatrix(mm[1]);
+    if (!transformAttr) continue;
+    const m = parseTransform(transformAttr);
     const w0 = parseFloat(img.getAttribute('width'));
     const h0 = parseFloat(img.getAttribute('height'));
     const rw = w0 * m.a;
@@ -325,6 +371,29 @@ for (const [productId, faceId, filename] of FILES) {
   results[productId] = results[productId] || [];
   results[productId].push(face);
 }
+
+// Rubikon 50's cube net — separately-exported per-artboard SVGs, one per physical face,
+// arranged as a cross so the whole net prints/exports as a single sheet.
+const CUBE_50_FILES = [
+  ['logo', 0, '50х50х50 - рубикон_Монтажная область 1 копия 16.svg'], // top: logo only
+  ['title', 1, '50х50х50 - рубикон_Монтажная область 1 копия 12.svg'], // left: "Меню..."
+  ['qr', 1, '50х50х50 - рубикон_Монтажная область 1 копия 13.svg'], // center: QR + logo
+  ['title2', 1, '50х50х50 - рубикон_Монтажная область 1 копия 14.svg'], // right: "Меню..." dup
+  ['qr2', 1, '50х50х50 - рубикон_Монтажная область 1 копия 15.svg'], // far right: QR + logo dup
+  ['number', 2, '50х50х50 - рубикон_Монтажная область 1 копия 17.svg'], // bottom: 01/1234567
+];
+const CUBE_50_COL = { logo: 1, title: 0, qr: 1, title2: 2, qr2: 3, number: 1 };
+const cube50Faces = CUBE_50_FILES.map(([faceId, row, filename]) => {
+  console.log('Processing', filename);
+  const face = processFile('rubikon-50', faceId, filename);
+  face.gridRow = row;
+  face.gridCol = CUBE_50_COL[faceId];
+  // these faces sit edge-to-edge in a grid, unlike standalone products — cap text width so
+  // it wraps inside its own cell instead of overlapping the neighboring face
+  face.layers = face.layers.map((l) => (l.kind === 'text' && l.wf > 0.85 ? { ...l, wf: 0.85 } : l));
+  return face;
+});
+results['rubikon-50'] = cube50Faces;
 
 writeFileSync(path.join(ROOT, 'scripts', 'extracted.json'), JSON.stringify(results, null, 2), 'utf-8');
 

@@ -18,33 +18,6 @@ function whiteBg(): LayerSpec {
 /** Hand-built approximations for cube/bottle faces the source SVG export didn't include
  *  (Illustrator only exports the artboard that was active when saving). */
 const EXTRA_FACES: Record<string, FaceDef[]> = {
-  'rubikon-50': [
-    {
-      id: 'title',
-      label: 'Текст',
-      widthPx: 141.73,
-      heightPx: 141.73,
-      widthMm: 50,
-      heightMm: 50,
-      layers: [
-        whiteBg(),
-        text({ id: 'title', text: 'Меню.\nОплата заказа.\nЧаевые.', xf: 0.1, yf: 0.32, wf: 0.8, fontSizeF: 0.095, align: 'center', fill: ink, fontStyle: 'bold' }),
-      ],
-    },
-    {
-      id: 'qr',
-      label: 'QR + лого',
-      widthPx: 141.73,
-      heightPx: 141.73,
-      widthMm: 50,
-      heightMm: 50,
-      layers: [
-        whiteBg(),
-        image({ id: 'qr', label: 'QR-код', xf: 0.21, yf: 0.12, wf: 0.58, hf: 0.58, defaultSrc: null, opacity: 1 }),
-        text({ id: 'logo', text: 'нетмонет', xf: 0.2, yf: 0.79, wf: 0.6, fontSizeF: 0.09, align: 'center', fill: ink, fontStyle: 'bold' }),
-      ],
-    },
-  ],
   'rubikon-60': [
     {
       id: 'title',
@@ -114,11 +87,14 @@ const EXTRA_FACES: Record<string, FaceDef[]> = {
   ],
 };
 
-const META: Record<string, { name: string; description: string; resizableCanvas?: boolean; stackedFaces?: boolean }> = {
+const META: Record<
+  string,
+  { name: string; description: string; resizableCanvas?: boolean; stackedFaces?: boolean; gridLayout?: boolean }
+> = {
   azau: { name: 'Азау', description: 'Тейбл-тент из оргстекла и дерева, 50×80 мм' },
   onix: { name: 'Оникс', description: 'Круглый акрил на подставке, Ø 59 мм' },
   amfora: { name: 'Амфора', description: 'Тейбл-тент, 60×130 мм', stackedFaces: true },
-  'rubikon-50': { name: 'Рубикон 50', description: 'Деревянный куб 50×50×50 мм', stackedFaces: true },
+  'rubikon-50': { name: 'Рубикон 50', description: 'Деревянный куб 50×50×50 мм', gridLayout: true },
   'rubikon-60': { name: 'Рубикон 60', description: 'Деревянный куб 60×60×60 мм', stackedFaces: true },
   arktika: { name: 'Арктика', description: 'Прозрачный тейбл-тент, 60×90 мм' },
   'naklejka-white': { name: 'Наклейка (белая)', description: 'Износостойкая наклейка, 80×80 мм', resizableCanvas: true },
@@ -142,6 +118,10 @@ const FACE_LABELS: Record<string, string> = {
   main: 'Макет',
   front: 'Лицевая сторона',
   number: 'Номер',
+  title: 'Текст',
+  title2: 'Текст (2)',
+  qr: 'QR + лого',
+  qr2: 'QR + лого (2)',
 };
 
 // the source vector files rely on the print material's own white/black surface for these —
@@ -205,6 +185,7 @@ export const PRODUCTS: ProductDef[] = ORDER.map((id) => {
     description: META[id].description,
     resizableCanvas: META[id].resizableCanvas,
     stackedFaces: META[id].stackedFaces,
+    gridLayout: META[id].gridLayout,
     faces,
   };
 });
