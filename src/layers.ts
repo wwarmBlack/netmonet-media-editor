@@ -10,7 +10,7 @@ export interface TextLayer {
   align: 'left' | 'center' | 'right';
   fill: string;
   rotation: number;
-  locked?: boolean;
+  arcPath?: string;
 }
 
 export interface ImageLayer {
@@ -23,7 +23,7 @@ export interface ImageLayer {
   width: number;
   height: number;
   rotation: number;
-  placeholderShape: 'rect' | 'circle';
+  backing: 'white' | 'none';
 }
 
 export type Layer = TextLayer | ImageLayer;

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { PRODUCTS } from './products';
+import { PRODUCTS } from './layouts';
 import Editor from './Editor';
 import './app.css';
 
@@ -15,14 +15,14 @@ export default function App() {
     <div className="picker">
       <header className="picker-header">
         <h1>Редактор макетов</h1>
-        <p>Выберите носитель, чтобы отредактировать его макет</p>
+        <p>Выберите носитель — откроется его базовый макет, готовый к редактированию</p>
       </header>
       <div className="picker-grid">
         {PRODUCTS.map((p) => (
           <button key={p.id} className="product-card" onClick={() => setSelectedId(p.id)}>
             <div
               className={`product-preview shape-${p.shape}`}
-              style={{ background: p.defaultBackground, color: p.defaultTextColor }}
+              style={{ background: p.faces[0].background, color: '#fff' }}
             >
               <span>{p.name}</span>
             </div>
