@@ -1,35 +1,12 @@
 import { useMemo, useRef, useState, useCallback, useEffect } from 'react';
-import {
-  Stage,
-  Layer as KonvaLayer,
-  Rect,
-  Circle,
-  Text,
-  TextPath,
-  Image as KonvaImage,
-  Group,
-  Transformer,
-} from 'react-konva';
+import { Stage, Layer as KonvaLayer, Rect, Text, TextPath, Image as KonvaImage, Group, Transformer } from 'react-konva';
 import type Konva from 'konva';
-import { PX_PER_MM, TARGET_DPI, type ProductDef, type FaceDef } from './layouts';
+import type { ProductDef, FaceDef } from './layout-types';
 import { nextId, type Layer, type TextLayer, type ImageLayer } from './layers';
 import { useHtmlImage } from './useImage';
 
-function computeArcPath(w: number, h: number, sweepDeg: number): string {
-  const cx = w / 2;
-  const cy = h / 2;
-  const r = Math.min(w, h) * 0.42;
-  const half = sweepDeg / 2;
-  const toRad = (deg: number) => (deg * Math.PI) / 180;
-  const point = (deg: number) => ({
-    x: cx + r * Math.sin(toRad(deg)),
-    y: cy - r * Math.cos(toRad(deg)),
-  });
-  const p1 = point(-half);
-  const p2 = point(half);
-  const largeArc = sweepDeg > 180 ? 1 : 0;
-  return `M ${p1.x},${p1.y} A ${r},${r} 0 ${largeArc},1 ${p2.x},${p2.y}`;
-}
+const TARGET_DPI = 300;
+const PT_PER_MM = 2.8346456693;
 
 function buildLayersFromFace(face: FaceDef, w: number, h: number): Layer[] {
   return face.layers.map((spec) => {
@@ -38,47 +15,33 @@ function buildLayersFromFace(face: FaceDef, w: number, h: number): Layer[] {
         id: spec.id,
         kind: 'text',
         text: spec.text,
-        x: spec.arc ? 0 : spec.xf * w,
-        y: spec.arc ? 0 : spec.yf * h,
+        x: spec.arcData ? 0 : spec.xf * w,
+        y: spec.arcData ? 0 : spec.yf * h,
         width: spec.wf * w,
         fontSize: spec.fontSizeF * w,
         fontStyle: spec.fontStyle,
         align: spec.align,
         fill: spec.fill,
         rotation: spec.rotation ?? 0,
-        arcPath: spec.arc ? computeArcPath(w, h, spec.arc.sweepDeg) : undefined,
+        arcPath: spec.arcData,
       };
       return layer;
     }
-    const size = spec.sizeF * Math.min(w, h);
     const layer: ImageLayer = {
       id: spec.id,
       kind: 'image',
       label: spec.label,
-      src: null,
+      src: spec.defaultSrc,
       x: spec.xf * w,
       y: spec.yf * h,
-      width: size,
-      height: size,
+      width: spec.wf * w,
+      height: spec.hf * h,
       rotation: 0,
-      backing: spec.backing,
+      opacity: spec.opacity,
+      decorative: spec.decorative,
     };
     return layer;
   });
-}
-
-function RingsDecoration({ w, h }: { w: number; h: number }) {
-  const cx = w * 0.75;
-  const cy = h * 0.69;
-  const maxR = Math.min(w, h) * 0.56;
-  const rings = [0.28, 0.42, 0.56, 0.7, 0.85, 1].map((f) => f * maxR);
-  return (
-    <>
-      {rings.map((r, i) => (
-        <Circle key={i} x={cx} y={cy} radius={r} stroke="rgba(128,128,128,0.22)" strokeWidth={1} listening={false} />
-      ))}
-    </>
-  );
 }
 
 function ImageLayerNode({
@@ -95,13 +58,13 @@ function ImageLayerNode({
   onChange: (patch: Partial<ImageLayer>) => void;
 }) {
   const img = useHtmlImage(layer.src);
-  const pad = layer.backing === 'white' ? layer.width * 0.12 : 0;
 
   return (
     <Group
       x={layer.x}
       y={layer.y}
       rotation={layer.rotation}
+      opacity={layer.opacity}
       draggable
       ref={(node) => registerRef(layer.id, node)}
       onClick={onSelect}
@@ -116,22 +79,12 @@ function ImageLayerNode({
         onChange({
           x: node.x(),
           y: node.y(),
-          width: Math.max(10, layer.width * scaleX),
-          height: Math.max(10, layer.height * scaleY),
+          width: Math.max(6, layer.width * scaleX),
+          height: Math.max(6, layer.height * scaleY),
           rotation: node.rotation(),
         });
       }}
     >
-      {layer.backing === 'white' && (
-        <Rect
-          x={-pad}
-          y={-pad}
-          width={layer.width + 2 * pad}
-          height={layer.height + 2 * pad}
-          fill="#ffffff"
-          cornerRadius={(layer.width + 2 * pad) * 0.1}
-        />
-      )}
       {img ? (
         <KonvaImage image={img} width={layer.width} height={layer.height} />
       ) : (
@@ -146,55 +99,20 @@ function ImageLayerNode({
         />
       )}
       {isSelected && (
-        <Rect
-          x={-pad - 2}
-          y={-pad - 2}
-          width={layer.width + 2 * pad + 4}
-          height={layer.height + 2 * pad + 4}
-          stroke="#ff6a00"
-          strokeWidth={2}
-          listening={false}
-        />
+        <Rect width={layer.width} height={layer.height} stroke="#ff6a00" strokeWidth={2} listening={false} />
       )}
     </Group>
   );
-}
-
-function clipForShape(shape: ProductDef['shape'], w: number, h: number, cornerRadiusF = 0.06) {
-  return (ctx: Konva.Context) => {
-    if (shape === 'circle') {
-      ctx.beginPath();
-      ctx.arc(w / 2, h / 2, Math.min(w, h) / 2, 0, Math.PI * 2, false);
-      ctx.closePath();
-      return;
-    }
-    const r = Math.min(cornerRadiusF * Math.min(w, h), w / 2, h / 2);
-    ctx.beginPath();
-    ctx.moveTo(r, 0);
-    ctx.lineTo(w - r, 0);
-    ctx.arcTo(w, 0, w, r, r);
-    ctx.lineTo(w, h - r);
-    ctx.arcTo(w, h, w - r, h, r);
-    ctx.lineTo(r, h);
-    ctx.arcTo(0, h, 0, h - r, r);
-    ctx.lineTo(0, r);
-    ctx.arcTo(0, 0, r, 0, r);
-    ctx.closePath();
-  };
 }
 
 export default function Editor({ product, onBack }: { product: ProductDef; onBack: () => void }) {
   const [faceIndex, setFaceIndex] = useState(0);
   const face = product.faces[faceIndex];
 
-  const [sizeMm, setSizeMm] = useState({ w: product.widthMm, h: product.heightMm });
-  const w = Math.round(sizeMm.w * PX_PER_MM);
-  const h = Math.round(sizeMm.h * PX_PER_MM);
-
-  const [background, setBackground] = useState<{ color: string; imageSrc: string | null }>({
-    color: face.background,
-    imageSrc: null,
-  });
+  const [sizePx, setSizePx] = useState({ w: face.widthPx, h: face.heightPx });
+  const w = sizePx.w;
+  const h = sizePx.h;
+  const sizeMm = { w: w / PT_PER_MM, h: h / PT_PER_MM };
 
   const [layers, setLayers] = useState<Layer[]>(() => buildLayersFromFace(face, w, h));
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -204,7 +122,7 @@ export default function Editor({ product, onBack }: { product: ProductDef; onBac
   const transformerRef = useRef<Konva.Transformer | null>(null);
   const nodeRefs = useRef<Map<string, Konva.Node>>(new Map());
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const prevSize = useRef(sizeMm);
+  const prevSize = useRef(sizePx);
 
   const registerRef = useCallback((id: string, node: Konva.Node | null) => {
     if (node) nodeRefs.current.set(id, node);
@@ -212,33 +130,33 @@ export default function Editor({ product, onBack }: { product: ProductDef; onBac
   }, []);
 
   useEffect(() => {
-    setSizeMm({ w: product.widthMm, h: product.heightMm });
     setFaceIndex(0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [product.id]);
 
   useEffect(() => {
-    const fw = Math.round(sizeMm.w * PX_PER_MM);
-    const fh = Math.round(sizeMm.h * PX_PER_MM);
+    const fw = face.widthPx;
+    const fh = face.heightPx;
+    setSizePx({ w: fw, h: fh });
     setLayers(buildLayersFromFace(face, fw, fh));
-    setBackground({ color: face.background, imageSrc: null });
     setSelectedId(null);
-    prevSize.current = sizeMm;
+    prevSize.current = { w: fw, h: fh };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [product.id, faceIndex]);
 
-  function applySizeChange(next: { w: number; h: number }) {
-    const ratioX = next.w / prevSize.current.w;
-    const ratioY = next.h / prevSize.current.h;
+  function applySizeChange(newWmm: number) {
+    const newW = newWmm * PT_PER_MM;
+    const ratio = newW / prevSize.current.w;
+    const newH = prevSize.current.h * ratio;
     setLayers((prev) =>
       prev.map((l) =>
         l.kind === 'text'
-          ? { ...l, x: l.x * ratioX, y: l.y * ratioY, width: l.width * ratioX, fontSize: l.fontSize * ((ratioX + ratioY) / 2) }
-          : { ...l, x: l.x * ratioX, y: l.y * ratioY, width: l.width * ratioX, height: l.height * ratioY },
+          ? { ...l, x: l.x * ratio, y: l.y * ratio, width: l.width * ratio, fontSize: l.fontSize * ratio }
+          : { ...l, x: l.x * ratio, y: l.y * ratio, width: l.width * ratio, height: l.height * ratio },
       ),
     );
-    prevSize.current = next;
-    setSizeMm(next);
+    prevSize.current = { w: newW, h: newH };
+    setSizePx({ w: newW, h: newH });
   }
 
   useEffect(() => {
@@ -276,26 +194,16 @@ export default function Editor({ product, onBack }: { product: ProductDef; onBac
     reader.readAsDataURL(file);
   }
 
-  function handleBackgroundImage(file: File) {
-    const reader = new FileReader();
-    reader.onload = () => {
-      setBackground((b) => ({ ...b, imageSrc: reader.result as string }));
-    };
-    reader.readAsDataURL(file);
-  }
-
-  const bgImage = useHtmlImage(background.imageSrc);
-
   function exportPng() {
     const stage = stageRef.current;
     if (!stage) return;
     const wasSelected = selectedId;
     setSelectedId(null);
     requestAnimationFrame(() => {
-      const pixelRatio = TARGET_DPI / 25.4 / PX_PER_MM;
+      const pixelRatio = TARGET_DPI / 72;
       const dataUrl = stage.toDataURL({ pixelRatio, mimeType: 'image/png' });
       const link = document.createElement('a');
-      link.download = `${product.id}-${face.id}-${sizeMm.w}x${sizeMm.h}.png`;
+      link.download = `${product.id}-${face.id}-${Math.round(sizeMm.w)}x${Math.round(sizeMm.h)}.png`;
       link.href = dataUrl;
       link.click();
       if (wasSelected) setSelectedId(wasSelected);
@@ -313,8 +221,6 @@ export default function Editor({ product, onBack }: { product: ProductDef; onBac
     setEditingText(null);
   }
 
-  const clipFn = useMemo(() => clipForShape(product.shape, w, h, product.cornerRadiusF), [product.shape, w, h, product.cornerRadiusF]);
-
   return (
     <div className="editor">
       <div className="toolbar">
@@ -327,59 +233,24 @@ export default function Editor({ product, onBack }: { product: ProductDef; onBac
           <div className="face-tabs">
             {product.faces.map((f, i) => (
               <button key={f.id} className={i === faceIndex ? 'active' : ''} onClick={() => setFaceIndex(i)}>
-                {f.label}
+                {f.label ?? f.id}
               </button>
             ))}
           </div>
         )}
 
         {product.resizableCanvas && (
-          <div className="size-inputs">
-            <label>
-              Ш
-              <input
-                type="number"
-                min={20}
-                max={400}
-                value={sizeMm.w}
-                onChange={(e) => applySizeChange({ ...sizeMm, w: Number(e.target.value) || sizeMm.w })}
-              />
-            </label>
-            <label>
-              В
-              <input
-                type="number"
-                min={20}
-                max={400}
-                value={sizeMm.h}
-                onChange={(e) => applySizeChange({ ...sizeMm, h: Number(e.target.value) || sizeMm.h })}
-              />
-            </label>
+          <label className="size-inputs">
+            Размер
+            <input
+              type="number"
+              min={20}
+              max={400}
+              value={Math.round(sizeMm.w)}
+              onChange={(e) => applySizeChange(Number(e.target.value) || sizeMm.w)}
+            />
             мм
-          </div>
-        )}
-
-        <label className="field">
-          <span>Фон</span>
-          <input
-            type="color"
-            value={background.color}
-            onChange={(e) => setBackground((b) => ({ ...b, color: e.target.value, imageSrc: null }))}
-          />
-        </label>
-
-        <label className="upload-btn">
-          Фон-изображение
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => e.target.files?.[0] && handleBackgroundImage(e.target.files[0])}
-          />
-        </label>
-        {background.imageSrc && (
-          <button className="ghost" onClick={() => setBackground((b) => ({ ...b, imageSrc: null }))}>
-            Убрать фон-фото
-          </button>
+          </label>
         )}
 
         <button className="primary" onClick={exportPng}>
@@ -397,20 +268,7 @@ export default function Editor({ product, onBack }: { product: ProductDef; onBac
               if (e.target === e.target.getStage()) setSelectedId(null);
             }}
           >
-            <KonvaLayer clipFunc={clipFn}>
-              {background.imageSrc && bgImage ? (
-                <KonvaImage image={bgImage} x={0} y={0} width={w} height={h} />
-              ) : product.shape === 'circle' ? (
-                <Circle x={w / 2} y={h / 2} radius={Math.min(w, h) / 2} fill={background.color} />
-              ) : (
-                <Rect x={0} y={0} width={w} height={h} fill={background.color} />
-              )}
-
-              {face.decorations === 'rings' && <RingsDecoration w={w} h={h} />}
-              {face.decorations === 'divider' && (
-                <Rect x={w * 0.33} y={h * 0.5} width={w * 0.34} height={1} fill="rgba(0,0,0,0.25)" listening={false} />
-              )}
-
+            <KonvaLayer>
               {layers.map((layer) =>
                 layer.kind === 'text' ? (
                   layer.arcPath ? (
@@ -477,23 +335,10 @@ export default function Editor({ product, onBack }: { product: ProductDef; onBac
                 ),
               )}
 
-              {product.accentBorder && (
-                <Rect
-                  x={1}
-                  y={1}
-                  width={w - 2}
-                  height={h - 2}
-                  stroke={product.accentBorder}
-                  strokeWidth={3}
-                  cornerRadius={(product.cornerRadiusF ?? 0) * Math.min(w, h)}
-                  listening={false}
-                />
-              )}
-
               <Transformer
                 ref={transformerRef}
                 rotateEnabled
-                boundBoxFunc={(oldBox, newBox) => (newBox.width < 12 || newBox.height < 12 ? oldBox : newBox)}
+                boundBoxFunc={(oldBox, newBox) => (newBox.width < 8 || newBox.height < 8 ? oldBox : newBox)}
               />
             </KonvaLayer>
           </Stage>
@@ -518,6 +363,7 @@ export default function Editor({ product, onBack }: { product: ProductDef; onBac
             {layers.map((l) => (
               <li key={l.id} className={l.id === selectedId ? 'active' : ''} onClick={() => setSelectedId(l.id)}>
                 {l.kind === 'text' ? `Текст: ${l.text.split('\n')[0].slice(0, 18)}` : l.label}
+                {l.kind === 'image' && l.decorative && <span className="tag">графика</span>}
               </li>
             ))}
           </ul>
@@ -536,7 +382,7 @@ export default function Editor({ product, onBack }: { product: ProductDef; onBac
                 Размер шрифта
                 <input
                   type="range"
-                  min={8}
+                  min={4}
                   max={Math.round(w * 0.25)}
                   value={selectedLayer.fontSize}
                   onChange={(e) =>
@@ -573,6 +419,19 @@ export default function Editor({ product, onBack }: { product: ProductDef; onBac
           {selectedLayer?.kind === 'image' && (
             <div className="props">
               <h4>{selectedLayer.label}</h4>
+              <label>
+                Прозрачность
+                <input
+                  type="range"
+                  min={0}
+                  max={1}
+                  step={0.05}
+                  value={selectedLayer.opacity}
+                  onChange={(e) =>
+                    updateLayer(selectedLayer.id, { opacity: Number(e.target.value) } as Partial<ImageLayer>)
+                  }
+                />
+              </label>
               <label className="upload-btn full">
                 Загрузить изображение
                 <input
@@ -631,7 +490,7 @@ export default function Editor({ product, onBack }: { product: ProductDef; onBac
                   width: size,
                   height: size,
                   rotation: 0,
-                  backing: 'none',
+                  opacity: 1,
                 };
                 setLayers((prev) => [...prev, img]);
                 setSelectedId(img.id);

@@ -20,10 +20,7 @@ export default function App() {
       <div className="picker-grid">
         {PRODUCTS.map((p) => (
           <button key={p.id} className="product-card" onClick={() => setSelectedId(p.id)}>
-            <div
-              className={`product-preview shape-${p.shape}`}
-              style={{ background: p.faces[0].background, color: '#fff' }}
-            >
+            <div className="product-preview">
               <span>{p.name}</span>
             </div>
             <div className="product-info">

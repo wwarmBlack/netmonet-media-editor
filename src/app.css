@@ -70,17 +70,8 @@ button {
   font-weight: 700;
   font-size: 15px;
   overflow: hidden;
-}
-
-.product-preview.shape-circle {
-  border-radius: 50%;
-  width: 140px;
-  height: 140px;
-  margin: 0 auto;
-}
-
-.product-preview.shape-landscape {
-  height: 100px;
+  background: linear-gradient(135deg, #2a2a2e, #55555c);
+  color: #fff;
 }
 
 .product-info {
@@ -293,6 +284,13 @@ button.danger {
   background: #ffe6d5;
   color: #b84c00;
   font-weight: 600;
+}
+
+.layer-list .tag {
+  float: right;
+  font-size: 10px;
+  color: #999;
+  text-transform: uppercase;
 }
 
 .props {

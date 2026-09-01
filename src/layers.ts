@@ -23,7 +23,8 @@ export interface ImageLayer {
   width: number;
   height: number;
   rotation: number;
-  backing: 'white' | 'none';
+  opacity: number;
+  decorative?: boolean;
 }
 
 export type Layer = TextLayer | ImageLayer;
