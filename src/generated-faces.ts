@@ -248,102 +248,6 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
       ]
     }
   ],
-  "rubikon-60": [
-    {
-      "id": "number",
-      "widthPx": 170.08,
-      "heightPx": 170.08,
-      "widthMm": 60,
-      "heightMm": 60,
-      "layers": [
-        {
-          "kind": "image",
-          "id": "deco19",
-          "label": "Графика 1",
-          "xf": 0,
-          "yf": 0,
-          "wf": 1,
-          "hf": 1,
-          "defaultSrc": "/layers/rubikon-60-number-deco1.svg",
-          "opacity": 1,
-          "decorative": true
-        },
-        {
-          "kind": "image",
-          "id": "deco20",
-          "label": "Графика 2",
-          "xf": 0,
-          "yf": 0,
-          "wf": 1,
-          "hf": 1,
-          "defaultSrc": "/layers/rubikon-60-number-deco2.svg",
-          "opacity": 1,
-          "decorative": true
-        },
-        {
-          "kind": "image",
-          "id": "deco21",
-          "label": "Графика 3",
-          "xf": 0,
-          "yf": 0,
-          "wf": 1,
-          "hf": 1,
-          "defaultSrc": "/layers/rubikon-60-number-deco3.svg",
-          "opacity": 1,
-          "decorative": true
-        },
-        {
-          "kind": "image",
-          "id": "deco22",
-          "label": "Графика 4",
-          "xf": 0,
-          "yf": 0,
-          "wf": 1,
-          "hf": 1,
-          "defaultSrc": "/layers/rubikon-60-number-deco4.svg",
-          "opacity": 1,
-          "decorative": true
-        },
-        {
-          "kind": "image",
-          "id": "deco23",
-          "label": "Графика 5",
-          "xf": 0,
-          "yf": 0,
-          "wf": 1,
-          "hf": 1,
-          "defaultSrc": "/layers/rubikon-60-number-deco5.svg",
-          "opacity": 1,
-          "decorative": true
-        },
-        {
-          "kind": "image",
-          "id": "deco24",
-          "label": "Графика 6",
-          "xf": 0,
-          "yf": 0,
-          "wf": 1,
-          "hf": 1,
-          "defaultSrc": "/layers/rubikon-60-number-deco6.svg",
-          "opacity": 1,
-          "decorative": true
-        },
-        {
-          "kind": "text",
-          "id": "t18",
-          "text": "Оплата заказа.\nЧаевые.\nОтзыв.",
-          "xf": 0.1700376293508937,
-          "yf": 0.32365533866415797,
-          "wf": 3,
-          "fontSizeF": 0.09407337723424271,
-          "align": "left",
-          "fill": "#000000",
-          "fontStyle": "bold",
-          "rotation": 0
-        }
-      ]
-    }
-  ],
   "arktika": [
     {
       "id": "main",
@@ -354,7 +258,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
       "layers": [
         {
           "kind": "image",
-          "id": "deco29",
+          "id": "deco22",
           "label": "Графика 1",
           "xf": 0,
           "yf": 0,
@@ -366,7 +270,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
         },
         {
           "kind": "text",
-          "id": "t25",
+          "id": "t18",
           "text": "Оплата заказа.\nЧаевые. Отзыв.",
           "xf": 0.19066027751646283,
           "yf": 0.09358184383819376,
@@ -379,7 +283,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
         },
         {
           "kind": "text",
-          "id": "t26",
+          "id": "t19",
           "text": "Оплатите заказ без официанта.\nЦеликом или только свою часть.",
           "xf": 0.16244473189087485,
           "yf": 0.24447162119786767,
@@ -392,7 +296,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
         },
         {
           "kind": "text",
-          "id": "t27",
+          "id": "t20",
           "text": "1234567- 01",
           "xf": 0.14957802210724364,
           "yf": 0.6492125274380685,
@@ -405,7 +309,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
         },
         {
           "kind": "image",
-          "id": "qr28",
+          "id": "qr21",
           "label": "QR-код",
           "xf": 0.20833196142991534,
           "yf": 0.3677751646284102,
@@ -427,7 +331,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
       "layers": [
         {
           "kind": "image",
-          "id": "deco35",
+          "id": "deco28",
           "label": "Графика 1",
           "xf": 0,
           "yf": 0,
@@ -439,7 +343,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
         },
         {
           "kind": "image",
-          "id": "deco36",
+          "id": "deco29",
           "label": "Рамка",
           "xf": 0,
           "yf": 0,
@@ -451,7 +355,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
         },
         {
           "kind": "text",
-          "id": "t30",
+          "id": "t23",
           "text": "07",
           "xf": 0.7273056400758476,
           "yf": 0.44065793535300085,
@@ -464,7 +368,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
         },
         {
           "kind": "text",
-          "id": "t31",
+          "id": "t24",
           "text": "Оплата заказа.\nЧаевые. Отзыв.",
           "xf": 0.07875248048683688,
           "yf": 0.08596286986814836,
@@ -477,7 +381,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
         },
         {
           "kind": "text",
-          "id": "t32",
+          "id": "t25",
           "text": "Оплатите заказ без\nофицианта. Целиком\nили только свою часть.",
           "xf": 0.08313533536182034,
           "yf": 0.702954976407814,
@@ -490,7 +394,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
         },
         {
           "kind": "text",
-          "id": "t33",
+          "id": "t26",
           "text": "1234567",
           "xf": 0.9556841733915421,
           "yf": 0.6186669312519292,
@@ -503,7 +407,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
         },
         {
           "kind": "image",
-          "id": "qr34",
+          "id": "qr27",
           "label": "QR-код",
           "xf": 0.6137046346518499,
           "yf": 0.541025708868016,
@@ -525,7 +429,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
       "layers": [
         {
           "kind": "image",
-          "id": "deco42",
+          "id": "deco35",
           "label": "Графика 1",
           "xf": 0,
           "yf": 0,
@@ -537,7 +441,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
         },
         {
           "kind": "image",
-          "id": "deco43",
+          "id": "deco36",
           "label": "Рамка",
           "xf": 0,
           "yf": 0,
@@ -549,7 +453,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
         },
         {
           "kind": "text",
-          "id": "t37",
+          "id": "t30",
           "text": "07",
           "xf": 0.7277470564889535,
           "yf": 0.44065793535300085,
@@ -562,7 +466,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
         },
         {
           "kind": "text",
-          "id": "t38",
+          "id": "t31",
           "text": "Оплата заказа.\nЧаевые. Отзыв.",
           "xf": 0.07875248048683688,
           "yf": 0.08596286986814836,
@@ -575,7 +479,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
         },
         {
           "kind": "text",
-          "id": "t39",
+          "id": "t32",
           "text": "Оплатите заказ без\nофицианта. Целиком\nили только свою часть.",
           "xf": 0.08313533536182034,
           "yf": 0.702954976407814,
@@ -588,7 +492,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
         },
         {
           "kind": "text",
-          "id": "t40",
+          "id": "t33",
           "text": "1234567",
           "xf": 0.9556841733915421,
           "yf": 0.6163703311725537,
@@ -601,7 +505,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
         },
         {
           "kind": "image",
-          "id": "qr41",
+          "id": "qr34",
           "label": "QR-код",
           "xf": 0.6137046346518499,
           "yf": 0.541025708868016,
@@ -623,7 +527,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
       "layers": [
         {
           "kind": "image",
-          "id": "deco49",
+          "id": "deco42",
           "label": "Графика 1",
           "xf": 0,
           "yf": 0,
@@ -635,7 +539,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
         },
         {
           "kind": "image",
-          "id": "deco50",
+          "id": "deco43",
           "label": "Графика 2",
           "xf": 0,
           "yf": 0,
@@ -647,7 +551,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
         },
         {
           "kind": "text",
-          "id": "t44",
+          "id": "t37",
           "text": "01",
           "xf": 0.2743257318046281,
           "yf": 0.14817665120533088,
@@ -660,7 +564,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
         },
         {
           "kind": "text",
-          "id": "t45",
+          "id": "t38",
           "text": "111222",
           "xf": 0.2461458989542648,
           "yf": 0.8062200300516104,
@@ -673,7 +577,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
         },
         {
           "kind": "text",
-          "id": "t46",
+          "id": "t39",
           "text": "Оплата заказа.\nЧаевые. Отзыв.",
           "xf": 0.5199143253118307,
           "yf": 0.3435493565035605,
@@ -686,7 +590,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
         },
         {
           "kind": "text",
-          "id": "t47",
+          "id": "t40",
           "text": "Оплатите заказ без официанта.\nЦеликом или только свою часть.",
           "xf": 0.5195615471840745,
           "yf": 0.5700966877899001,
@@ -699,7 +603,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
         },
         {
           "kind": "image",
-          "id": "qr48",
+          "id": "qr41",
           "label": "QR-код",
           "xf": 0.1495506278610726,
           "yf": 0.27394590710132616,
@@ -721,7 +625,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
       "layers": [
         {
           "kind": "image",
-          "id": "deco51",
+          "id": "deco44",
           "label": "Графика 1",
           "xf": 0,
           "yf": 0,
@@ -744,13 +648,13 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
       "layers": [
         {
           "kind": "text",
-          "id": "t52",
+          "id": "t45",
           "text": "Меню.\nОплата заказа.\nЧаевые.",
-          "xf": 0.3582163268185988,
+          "xf": 0.075,
           "yf": 0.3236618923304876,
           "wf": 0.85,
           "fontSizeF": 0.09405207083891907,
-          "align": "left",
+          "align": "center",
           "fill": "#1d1d1b",
           "fontStyle": "bold",
           "rotation": 0
@@ -768,7 +672,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
       "layers": [
         {
           "kind": "image",
-          "id": "deco54",
+          "id": "deco47",
           "label": "Графика 1",
           "xf": 0,
           "yf": 0,
@@ -780,7 +684,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
         },
         {
           "kind": "image",
-          "id": "qr53",
+          "id": "qr46",
           "label": "QR-код",
           "xf": 0.24998236082692446,
           "yf": 0.17942566852465958,
@@ -802,13 +706,13 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
       "layers": [
         {
           "kind": "text",
-          "id": "t55",
+          "id": "t48",
           "text": "Меню.\nОплата заказа.\nЧаевые.",
-          "xf": 0.3582163268185988,
+          "xf": 0.075,
           "yf": 0.3236618923304876,
           "wf": 0.85,
           "fontSizeF": 0.09405207083891907,
-          "align": "left",
+          "align": "center",
           "fill": "#1d1d1b",
           "fontStyle": "bold",
           "rotation": 0
@@ -826,7 +730,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
       "layers": [
         {
           "kind": "image",
-          "id": "deco57",
+          "id": "deco50",
           "label": "Графика 1",
           "xf": 0,
           "yf": 0,
@@ -838,7 +742,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
         },
         {
           "kind": "image",
-          "id": "qr56",
+          "id": "qr49",
           "label": "QR-код",
           "xf": 0.24998236082692446,
           "yf": 0.17942566852465958,
@@ -860,7 +764,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
       "layers": [
         {
           "kind": "image",
-          "id": "deco60",
+          "id": "deco53",
           "label": "Графика 1",
           "xf": 0,
           "yf": 0,
@@ -872,7 +776,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
         },
         {
           "kind": "text",
-          "id": "t58",
+          "id": "t51",
           "text": "01",
           "xf": 0.47117759119452485,
           "yf": 0.3707048613560997,
@@ -885,7 +789,7 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
         },
         {
           "kind": "text",
-          "id": "t59",
+          "id": "t52",
           "text": "1234567",
           "xf": 0.39688139420023993,
           "yf": 0.541804840189092,
@@ -893,6 +797,196 @@ export const GENERATED_FACES: Record<string, FaceDef[]> = {
           "fontSizeF": 0.07055669230226487,
           "align": "left",
           "fill": "#000000",
+          "fontStyle": "normal",
+          "rotation": 0
+        }
+      ],
+      "gridRow": 2,
+      "gridCol": 1
+    }
+  ],
+  "rubikon-60": [
+    {
+      "id": "logo",
+      "widthPx": 170.08,
+      "heightPx": 170.08,
+      "widthMm": 60,
+      "heightMm": 60,
+      "layers": [
+        {
+          "kind": "image",
+          "id": "deco54",
+          "label": "Графика 1",
+          "xf": 0,
+          "yf": 0,
+          "wf": 1,
+          "hf": 1,
+          "defaultSrc": "/layers/rubikon-60-logo-deco1.svg",
+          "opacity": 1,
+          "decorative": true
+        }
+      ],
+      "gridRow": 0,
+      "gridCol": 1
+    },
+    {
+      "id": "title",
+      "widthPx": 170.08,
+      "heightPx": 170.08,
+      "widthMm": 60,
+      "heightMm": 60,
+      "layers": [
+        {
+          "kind": "text",
+          "id": "t55",
+          "text": "Оплата заказа.\nЧаевые.\nОтзыв.",
+          "xf": 0.075,
+          "yf": 0.3236712135465663,
+          "wf": 0.85,
+          "fontSizeF": 0.09407337723424271,
+          "align": "center",
+          "fill": "#1d1d1b",
+          "fontStyle": "bold",
+          "rotation": 0
+        }
+      ],
+      "gridRow": 1,
+      "gridCol": 0
+    },
+    {
+      "id": "qr",
+      "widthPx": 170.08,
+      "heightPx": 170.08,
+      "widthMm": 60,
+      "heightMm": 60,
+      "layers": [
+        {
+          "kind": "image",
+          "id": "deco57",
+          "label": "Графика 1",
+          "xf": 0,
+          "yf": 0,
+          "wf": 1,
+          "hf": 1,
+          "defaultSrc": "/layers/rubikon-60-qr-deco1.svg",
+          "opacity": 1,
+          "decorative": true
+        },
+        {
+          "kind": "image",
+          "id": "qr56",
+          "label": "QR-код",
+          "xf": 0.25,
+          "yf": 0.17944496707431795,
+          "wf": 0.49976481655691435,
+          "hf": 0.49976481655691435,
+          "defaultSrc": "/layers/rubikon-60-qr-qr.png",
+          "opacity": 1
+        }
+      ],
+      "gridRow": 1,
+      "gridCol": 1
+    },
+    {
+      "id": "tagline",
+      "widthPx": 170.08,
+      "heightPx": 170.08,
+      "widthMm": 60,
+      "heightMm": 60,
+      "layers": [
+        {
+          "kind": "text",
+          "id": "t58",
+          "text": "Сканируй.\nПлати.\nБлагодари.",
+          "xf": 0.075,
+          "yf": 0.3236712135465663,
+          "wf": 0.85,
+          "fontSizeF": 0.09407337723424271,
+          "align": "center",
+          "fill": "#1d1d1b",
+          "fontStyle": "bold",
+          "rotation": 0
+        }
+      ],
+      "gridRow": 1,
+      "gridCol": 2
+    },
+    {
+      "id": "qr2",
+      "widthPx": 170.08,
+      "heightPx": 170.08,
+      "widthMm": 60,
+      "heightMm": 60,
+      "layers": [
+        {
+          "kind": "image",
+          "id": "deco60",
+          "label": "Графика 1",
+          "xf": 0,
+          "yf": 0,
+          "wf": 1,
+          "hf": 1,
+          "defaultSrc": "/layers/rubikon-60-qr2-deco1.svg",
+          "opacity": 1,
+          "decorative": true
+        },
+        {
+          "kind": "image",
+          "id": "qr59",
+          "label": "QR-код",
+          "xf": 0.25,
+          "yf": 0.17944496707431795,
+          "wf": 0.49976481655691435,
+          "hf": 0.49976481655691435,
+          "defaultSrc": "/layers/rubikon-60-qr2-qr.png",
+          "opacity": 1
+        }
+      ],
+      "gridRow": 1,
+      "gridCol": 3
+    },
+    {
+      "id": "number",
+      "widthPx": 170.08,
+      "heightPx": 170.08,
+      "widthMm": 60,
+      "heightMm": 60,
+      "layers": [
+        {
+          "kind": "image",
+          "id": "deco63",
+          "label": "Графика 1",
+          "xf": 0,
+          "yf": 0,
+          "wf": 1,
+          "hf": 1,
+          "defaultSrc": "/layers/rubikon-60-number-deco1.svg",
+          "opacity": 1,
+          "decorative": true
+        },
+        {
+          "kind": "text",
+          "id": "t61",
+          "text": "01",
+          "xf": 0.4716015992474129,
+          "yf": 0.39475540921919094,
+          "wf": 0.85,
+          "fontSizeF": 0.041157102539981186,
+          "align": "left",
+          "fill": "#1d1d1b",
+          "fontStyle": "normal",
+          "rotation": 0
+        },
+        {
+          "kind": "text",
+          "id": "t62",
+          "text": "1234567",
+          "xf": 0.39845954844778925,
+          "yf": 0.5632643461900283,
+          "wf": 0.85,
+          "fontSizeF": 0.041157102539981186,
+          "align": "left",
+          "fill": "#1d1d1b",
           "fontStyle": "normal",
           "rotation": 0
         }

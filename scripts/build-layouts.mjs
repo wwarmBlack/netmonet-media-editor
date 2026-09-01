@@ -17,7 +17,6 @@ const FILES = [
   ['azau', 'main', '50х80 - Азау.svg'],
   ['onix', 'main', '59мм -Оникс_счёт.svg'],
   ['amfora', 'front', '60х130 - Амфора.svg'],
-  ['rubikon-60', 'number', '60х60х60 - рубикон.svg'],
   ['arktika', 'main', '60х90_Арктика-new.svg'],
   ['naklejka-white', 'main', '80х80- наклейка_белая.svg'],
   ['naklejka-black', 'main', '80х80- наклейка.svg'],
@@ -372,28 +371,57 @@ for (const [productId, faceId, filename] of FILES) {
   results[productId].push(face);
 }
 
-// Rubikon 50's cube net — separately-exported per-artboard SVGs, one per physical face,
-// arranged as a cross so the whole net prints/exports as a single sheet.
-const CUBE_50_FILES = [
-  ['logo', 0, '50х50х50 - рубикон_Монтажная область 1 копия 16.svg'], // top: logo only
-  ['title', 1, '50х50х50 - рубикон_Монтажная область 1 копия 12.svg'], // left: "Меню..."
-  ['qr', 1, '50х50х50 - рубикон_Монтажная область 1 копия 13.svg'], // center: QR + logo
-  ['title2', 1, '50х50х50 - рубикон_Монтажная область 1 копия 14.svg'], // right: "Меню..." dup
-  ['qr2', 1, '50х50х50 - рубикон_Монтажная область 1 копия 15.svg'], // far right: QR + logo dup
-  ['number', 2, '50х50х50 - рубикон_Монтажная область 1 копия 17.svg'], // bottom: 01/1234567
-];
-const CUBE_50_COL = { logo: 1, title: 0, qr: 1, title2: 2, qr2: 3, number: 1 };
-const cube50Faces = CUBE_50_FILES.map(([faceId, row, filename]) => {
-  console.log('Processing', filename);
-  const face = processFile('rubikon-50', faceId, filename);
-  face.gridRow = row;
-  face.gridCol = CUBE_50_COL[faceId];
-  // these faces sit edge-to-edge in a grid, unlike standalone products — cap text width so
-  // it wraps inside its own cell instead of overlapping the neighboring face
-  face.layers = face.layers.map((l) => (l.kind === 'text' && l.wf > 0.85 ? { ...l, wf: 0.85 } : l));
-  return face;
-});
-results['rubikon-50'] = cube50Faces;
+// Rubikon cube nets — separately-exported per-artboard SVGs, one per physical face, arranged
+// as a cross so the whole net prints/exports as a single sheet.
+function processCubeNet(productId, files, colMap, centeredIds) {
+  const faces = files.map(([faceId, row, filename]) => {
+    console.log('Processing', filename);
+    const face = processFile(productId, faceId, filename);
+    face.gridRow = row;
+    face.gridCol = colMap[faceId];
+    // these faces sit edge-to-edge in a grid, unlike standalone products — cap text width so
+    // it wraps inside its own cell instead of overlapping the neighboring face
+    face.layers = face.layers.map((l) => (l.kind === 'text' && l.wf > 0.85 ? { ...l, wf: 0.85 } : l));
+    // multi-line titles had each line individually re-centered in the source (per-line x
+    // corrections for centering) — our extractor only reads line 1's start, so it renders
+    // left-aligned and drifts right of the true (centered) look; redo it as a centered box
+    if (centeredIds.includes(faceId)) {
+      face.layers = face.layers.map((l) =>
+        l.kind === 'text' ? { ...l, xf: 0.075, wf: 0.85, align: 'center' } : l,
+      );
+    }
+    return face;
+  });
+  results[productId] = faces;
+}
+
+processCubeNet(
+  'rubikon-50',
+  [
+    ['logo', 0, '50х50х50 - рубикон_Монтажная область 1 копия 16.svg'], // top: logo only
+    ['title', 1, '50х50х50 - рубикон_Монтажная область 1 копия 12.svg'], // left: "Меню..."
+    ['qr', 1, '50х50х50 - рубикон_Монтажная область 1 копия 13.svg'], // center: QR + logo
+    ['title2', 1, '50х50х50 - рубикон_Монтажная область 1 копия 14.svg'], // right: "Меню..." dup
+    ['qr2', 1, '50х50х50 - рубикон_Монтажная область 1 копия 15.svg'], // far right: QR + logo dup
+    ['number', 2, '50х50х50 - рубикон_Монтажная область 1 копия 17.svg'], // bottom: 01/1234567
+  ],
+  { logo: 1, title: 0, qr: 1, title2: 2, qr2: 3, number: 1 },
+  ['title', 'title2'],
+);
+
+processCubeNet(
+  'rubikon-60',
+  [
+    ['logo', 0, '60х60х60 - рубикон_Монтажная область 1 копия 16.svg'], // top: logo only
+    ['title', 1, '60х60х60 - рубикон_Монтажная область 1 копия 12.svg'], // left: "Оплата заказа..."
+    ['qr', 1, '60х60х60 - рубикон_Монтажная область 1 копия 13.svg'], // QR + logo
+    ['tagline', 1, '60х60х60 - рубикон_Монтажная область 1 копия 14.svg'], // "Сканируй. Плати..."
+    ['qr2', 1, '60х60х60 - рубикон_Монтажная область 1 копия 15.svg'], // QR + logo dup
+    ['number', 2, '60х60х60 - рубикон_Монтажная область 1 копия 17.svg'], // bottom: 01/1234567
+  ],
+  { logo: 1, title: 0, qr: 1, tagline: 2, qr2: 3, number: 1 },
+  ['title', 'tagline'],
+);
 
 writeFileSync(path.join(ROOT, 'scripts', 'extracted.json'), JSON.stringify(results, null, 2), 'utf-8');
 
