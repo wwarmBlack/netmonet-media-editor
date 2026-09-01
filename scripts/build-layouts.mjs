@@ -297,6 +297,27 @@ function processFile(productId, faceId, filename) {
   };
 }
 
+// redraw the stickers' "rings" print effect (the source's own version is a near-white radial
+// gradient centered on the QR that's essentially invisible once rendered) as a visible layer.
+function writeRings(fileName, stroke, opacityStart, opacityEnd) {
+  const cx = 170.32;
+  const cy = 153.75;
+  const count = 9;
+  const rMin = 28;
+  const rMax = 120;
+  let circles = '';
+  for (let i = 0; i < count; i++) {
+    const t = i / (count - 1);
+    const r = rMin + t * (rMax - rMin);
+    const op = opacityStart + t * (opacityEnd - opacityStart);
+    circles += `<circle cx="${cx}" cy="${cy}" r="${r.toFixed(2)}" fill="none" stroke="${stroke}" stroke-width="0.8" opacity="${op.toFixed(2)}"/>`;
+  }
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 226.77 226.77">${circles}</svg>`;
+  writeFileSync(path.join(ASSET_DIR, fileName), svg, 'utf-8');
+}
+writeRings('rings-light.svg', '#a8a8a8', 0.55, 0.05);
+writeRings('rings-dark.svg', '#b0b0b0', 0.75, 0.1);
+
 const results = {};
 for (const [productId, faceId, filename] of FILES) {
   console.log('Processing', filename);
