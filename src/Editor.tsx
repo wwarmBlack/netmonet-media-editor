@@ -57,6 +57,7 @@ function buildLayersFromFace(face: FaceDef, w: number, h: number): Layer[] {
       rotation: 0,
       opacity: spec.opacity,
       decorative: spec.decorative,
+      fill: spec.fill,
     };
     return layer;
   });
@@ -105,6 +106,8 @@ function ImageLayerNode({
     >
       {img ? (
         <KonvaImage image={img} width={layer.width} height={layer.height} />
+      ) : layer.fill ? (
+        <Rect width={layer.width} height={layer.height} fill={layer.fill} />
       ) : (
         <Rect
           width={layer.width}
@@ -123,16 +126,39 @@ function ImageLayerNode({
   );
 }
 
+const STACK_GAP = 48;
+
+function buildStackedLayout(product: ProductDef): { w: number; h: number; layers: Layer[] } {
+  let cursorY = 0;
+  let maxW = 0;
+  const merged: Layer[] = [];
+  for (const f of product.faces) {
+    const fw = f.widthPx * EDIT_SCALE;
+    const fh = f.heightPx * EDIT_SCALE;
+    maxW = Math.max(maxW, fw);
+    for (const l of buildLayersFromFace(f, fw, fh)) {
+      merged.push({ ...l, y: l.y + cursorY } as Layer);
+    }
+    cursorY += fh + STACK_GAP;
+  }
+  return { w: maxW, h: Math.max(0, cursorY - STACK_GAP), layers: merged };
+}
+
 export default function Editor({ product, onBack }: { product: ProductDef; onBack: () => void }) {
+  const isStacked = !!product.stackedFaces;
   const [faceIndex, setFaceIndex] = useState(0);
   const face = product.faces[faceIndex];
 
-  const [sizePx, setSizePx] = useState({ w: face.widthPx * EDIT_SCALE, h: face.heightPx * EDIT_SCALE });
+  const initial = isStacked
+    ? buildStackedLayout(product)
+    : { w: face.widthPx * EDIT_SCALE, h: face.heightPx * EDIT_SCALE, layers: null as Layer[] | null };
+
+  const [sizePx, setSizePx] = useState({ w: initial.w, h: initial.h });
   const w = sizePx.w;
   const h = sizePx.h;
   const sizeMm = { w: w / PT_PER_MM / EDIT_SCALE, h: h / PT_PER_MM / EDIT_SCALE };
 
-  const [layers, setLayers] = useState<Layer[]>(() => buildLayersFromFace(face, w, h));
+  const [layers, setLayers] = useState<Layer[]>(() => initial.layers ?? buildLayersFromFace(face, w, h));
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [editingText, setEditingText] = useState<TextLayer | null>(null);
 
@@ -153,6 +179,14 @@ export default function Editor({ product, onBack }: { product: ProductDef; onBac
   }, [product.id]);
 
   useEffect(() => {
+    if (isStacked) {
+      const combined = buildStackedLayout(product);
+      setSizePx({ w: combined.w, h: combined.h });
+      setLayers(combined.layers);
+      setSelectedId(null);
+      prevSize.current = { w: combined.w, h: combined.h };
+      return;
+    }
     const fw = face.widthPx * EDIT_SCALE;
     const fh = face.heightPx * EDIT_SCALE;
     setSizePx({ w: fw, h: fh });
@@ -221,7 +255,7 @@ export default function Editor({ product, onBack }: { product: ProductDef; onBac
       const pixelRatio = TARGET_DPI / 72 / EDIT_SCALE;
       const dataUrl = stage.toDataURL({ pixelRatio, mimeType: 'image/png' });
       const link = document.createElement('a');
-      link.download = `${product.id}-${face.id}-${Math.round(sizeMm.w)}x${Math.round(sizeMm.h)}.png`;
+      link.download = `${product.id}-${isStacked ? 'both' : face.id}-${Math.round(sizeMm.w)}x${Math.round(sizeMm.h)}.png`;
       link.href = dataUrl;
       link.click();
       if (wasSelected) setSelectedId(wasSelected);
@@ -247,7 +281,7 @@ export default function Editor({ product, onBack }: { product: ProductDef; onBac
         </button>
         <div className="toolbar-title">{product.name}</div>
 
-        {product.faces.length > 1 && (
+        {!isStacked && product.faces.length > 1 && (
           <div className="face-tabs">
             {product.faces.map((f, i) => (
               <button key={f.id} className={i === faceIndex ? 'active' : ''} onClick={() => setFaceIndex(i)}>

@@ -25,6 +25,7 @@ export interface ImageLayer {
   rotation: number;
   opacity: number;
   decorative?: boolean;
+  fill?: string;
 }
 
 export type Layer = TextLayer | ImageLayer;

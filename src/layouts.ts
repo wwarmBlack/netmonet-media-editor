@@ -11,6 +11,10 @@ function image(partial: Omit<Extract<LayerSpec, { kind: 'image' }>, 'kind'>): La
   return { kind: 'image', ...partial };
 }
 
+function whiteBg(): LayerSpec {
+  return image({ id: 'bg', label: 'Фон', xf: 0, yf: 0, wf: 1, hf: 1, defaultSrc: null, opacity: 1, fill: '#ffffff' });
+}
+
 /** Hand-built approximations for cube/bottle faces the source SVG export didn't include
  *  (Illustrator only exports the artboard that was active when saving). */
 const EXTRA_FACES: Record<string, FaceDef[]> = {
@@ -84,6 +88,7 @@ const EXTRA_FACES: Record<string, FaceDef[]> = {
       widthMm: 60,
       heightMm: 130,
       layers: [
+        whiteBg(),
         text({ id: 'num', text: '01', xf: 0.06, yf: 0.93, wf: 0.3, fontSizeF: 0.05, align: 'left', fill: ink, fontStyle: 'normal' }),
         text({ id: 'code', text: '1234567', xf: 0.5, yf: 0.93, wf: 0.44, fontSizeF: 0.05, align: 'right', fill: ink, fontStyle: 'normal' }),
       ],
@@ -91,10 +96,10 @@ const EXTRA_FACES: Record<string, FaceDef[]> = {
   ],
 };
 
-const META: Record<string, { name: string; description: string; resizableCanvas?: boolean }> = {
+const META: Record<string, { name: string; description: string; resizableCanvas?: boolean; stackedFaces?: boolean }> = {
   azau: { name: 'Азау', description: 'Тейбл-тент из оргстекла и дерева, 50×80 мм' },
   onix: { name: 'Оникс', description: 'Круглый акрил на подставке, Ø 59 мм' },
-  amfora: { name: 'Амфора', description: 'Тейбл-тент, 60×130 мм' },
+  amfora: { name: 'Амфора', description: 'Тейбл-тент, 60×130 мм', stackedFaces: true },
   'rubikon-50': { name: 'Рубикон 50', description: 'Деревянный куб 50×50×50 мм' },
   'rubikon-60': { name: 'Рубикон 60', description: 'Деревянный куб 60×60×60 мм' },
   arktika: { name: 'Арктика', description: 'Прозрачный тейбл-тент, 60×90 мм' },
@@ -121,14 +126,60 @@ const FACE_LABELS: Record<string, string> = {
   number: 'Номер',
 };
 
+// the source vector files rely on the print material's own white/black surface for these —
+// there's no explicit background rect to extract, so inject one to match the physical product.
+const FORCE_BG: Record<string, string> = {
+  amfora: '#ffffff',
+  'naklejka-white': '#ffffff',
+  'naklejka-black': '#0c0c0c',
+};
+
+// the source file's own "rings" print effect (a near-white radial gradient) is invisible once
+// printed, so redraw it as an actual visible decorative layer, centered on the QR like the source.
+const RINGS: Record<string, string> = {
+  'naklejka-white': '/layers/rings-light.svg',
+  'naklejka-black': '/layers/rings-dark.svg',
+};
+
 export const PRODUCTS: ProductDef[] = ORDER.map((id) => {
-  const generated = (GENERATED_FACES[id] ?? []).map((f) => ({ ...f, label: FACE_LABELS[f.id] ?? f.id }));
+  let generated = (GENERATED_FACES[id] ?? []).map((f) => ({ ...f, label: FACE_LABELS[f.id] ?? f.id }));
   const extra = EXTRA_FACES[id] ?? [];
+
+  if (FORCE_BG[id]) {
+    const bgColor = FORCE_BG[id];
+    generated = generated.map((f) => ({
+      ...f,
+      layers: [
+        image({ id: 'bg', label: 'Фон', xf: 0, yf: 0, wf: 1, hf: 1, defaultSrc: null, opacity: 1, fill: bgColor }),
+        ...f.layers,
+      ],
+    }));
+  }
+
+  if (RINGS[id]) {
+    const src = RINGS[id];
+    generated = generated.map((f) => ({
+      ...f,
+      layers: [
+        f.layers[0],
+        image({ id: 'rings', label: 'Кольца', xf: 0, yf: 0, wf: 1, hf: 1, defaultSrc: src, opacity: 1, decorative: true }),
+        ...f.layers.slice(1),
+      ],
+    }));
+  }
+
+  let faces = [...extra.filter((f) => f.id === 'title' || f.id === 'qr' || f.id === 'tagline'), ...generated, ...extra.filter((f) => f.id === 'back')];
+  if (id === 'amfora') {
+    // stacked view reads top-to-bottom: back side above the front
+    faces = [...faces].reverse();
+  }
+
   return {
     id,
     name: META[id].name,
     description: META[id].description,
     resizableCanvas: META[id].resizableCanvas,
-    faces: [...extra.filter((f) => f.id === 'title' || f.id === 'qr' || f.id === 'tagline'), ...generated, ...extra.filter((f) => f.id === 'back')],
+    stackedFaces: META[id].stackedFaces,
+    faces,
   };
 });

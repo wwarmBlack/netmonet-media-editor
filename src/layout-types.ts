@@ -28,6 +28,8 @@ export interface ImageSpec {
   opacity: number;
   /** decorative art extracted from the source file (rings, gradients, panels, borders, logo) — still fully editable */
   decorative?: boolean;
+  /** solid color shown while there's no image (or as a plain color layer, e.g. a page background) */
+  fill?: string;
 }
 
 export type LayerSpec = TextSpec | ImageSpec;
@@ -47,5 +49,7 @@ export interface ProductDef {
   name: string;
   description: string;
   resizableCanvas?: boolean;
+  /** stack all faces vertically in one canvas/export instead of tabbed switching */
+  stackedFaces?: boolean;
   faces: FaceDef[];
 }
