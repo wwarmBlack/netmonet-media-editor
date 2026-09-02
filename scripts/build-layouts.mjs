@@ -363,12 +363,75 @@ function writeRings(fileName, stroke, opacityStart, opacityEnd) {
 writeRings('rings-light.svg', '#a8a8a8', 0.55, 0.05);
 writeRings('rings-dark.svg', '#b0b0b0', 0.75, 0.1);
 
+// naklejka-white/black bundle their background rect + (now-redundant, we redraw brighter) rings
+// gradient + a faint shadow image + the "нетмонет" logo (outlined shapes) into ONE opaque
+// decorative child of #Слой_1 — split it so the logo becomes its own movable/deletable layer
+// instead of being locked inside an undifferentiated blob.
+function splitLogoFromWrapper(productId, faceId, filename, wrapperId) {
+  const filePath = path.join(SRC_DIR, filename);
+  const raw = readFileSync(filePath, 'utf-8');
+  const root = parse(raw, { lowerCaseTagName: true, comment: false });
+  const svgEl = root.querySelector('svg');
+  const [, , vbW, vbH] = svgEl.getAttribute('viewbox').trim().split(/\s+/).map(Number);
+  const styleEl = svgEl.querySelector('style');
+  const styleBlockHtml = styleEl ? styleEl.outerHTML : '';
+  const defsHtml = svgEl.querySelectorAll('defs').map((d) => d.outerHTML).join('\n');
+  const wrapper = svgEl.querySelector(`#${wrapperId}`);
+  if (!wrapper) return [];
+
+  const children = wrapper.childNodes.filter((c) => c.tagName);
+  const extra = [];
+  let extraIndex = 0;
+  children.forEach((child, i) => {
+    const tag = child.tagName.toLowerCase();
+    if (tag === 'text') return; // already picked up by the normal text pass
+    if (i === 0) return; // background rect + rings gradient — redundant, we inject our own
+
+    let opacity = 1;
+    const own = tag === 'image' ? child : child.querySelector && child.querySelector('image');
+    if (own) {
+      const om = /opacity:\s*([\d.]+)/.exec(own.getAttribute('style') || '');
+      if (om) opacity = parseFloat(om[1]);
+    }
+    const isLogo = tag === 'g' && child.querySelectorAll && child.querySelectorAll('polygon,path').length > 3;
+    const label = isLogo ? 'Логотип' : opacity < 0.9 ? 'Тень' : 'Графика';
+
+    extraIndex += 1;
+    const snippet = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 ${vbW} ${vbH}">${styleBlockHtml}${defsHtml}${child.outerHTML}</svg>`;
+    const fileName = `${productId}-${faceId}-decoX${extraIndex}.svg`;
+    writeFileSync(path.join(ASSET_DIR, fileName), snippet, 'utf-8');
+    extra.push({
+      kind: 'image',
+      id: nextId('decox'),
+      label,
+      xf: 0,
+      yf: 0,
+      wf: 1,
+      hf: 1,
+      defaultSrc: `/layers/${fileName}`,
+      opacity,
+      decorative: true,
+    });
+  });
+  return extra;
+}
+
 const results = {};
 for (const [productId, faceId, filename] of FILES) {
   console.log('Processing', filename);
   const face = processFile(productId, faceId, filename);
   results[productId] = results[productId] || [];
   results[productId].push(face);
+}
+
+for (const [productId, filename] of [
+  ['naklejka-white', '80х80- наклейка_белая.svg'],
+  ['naklejka-black', '80х80- наклейка.svg'],
+]) {
+  const face = results[productId][0];
+  const bundleIndex = face.layers.findIndex((l) => l.kind === 'image' && l.defaultSrc?.endsWith('-deco1.svg'));
+  const extraLayers = splitLogoFromWrapper(productId, 'main', filename, 'Слой_1');
+  if (bundleIndex >= 0) face.layers.splice(bundleIndex, 1, ...extraLayers);
 }
 
 // Rubikon cube nets — separately-exported per-artboard SVGs, one per physical face, arranged
