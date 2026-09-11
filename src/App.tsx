@@ -1,11 +1,28 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { PRODUCTS } from './layouts';
 import Editor from './Editor';
 import './app.css';
 
+const SELECTED_KEY = 'menu-editor-selected-product';
+
 export default function App() {
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(() => {
+    try {
+      return localStorage.getItem(SELECTED_KEY);
+    } catch {
+      return null;
+    }
+  });
   const product = PRODUCTS.find((p) => p.id === selectedId) ?? null;
+
+  useEffect(() => {
+    try {
+      if (selectedId) localStorage.setItem(SELECTED_KEY, selectedId);
+      else localStorage.removeItem(SELECTED_KEY);
+    } catch {
+      /* ignore */
+    }
+  }, [selectedId]);
 
   if (product) {
     return <Editor product={product} onBack={() => setSelectedId(null)} />;

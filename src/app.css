@@ -336,3 +336,99 @@ button.danger {
 .full {
   width: 100%;
 }
+
+.color-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.color-row input[type='color'] {
+  width: 34px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: none;
+}
+
+.hex-input {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  font-family: monospace;
+}
+
+button.small {
+  padding: 5px 8px;
+  font-size: 12px;
+}
+
+.error-text {
+  font-size: 13px;
+  color: #c62828;
+  background: #fdeceb;
+  border: 1px solid #f3c3bf;
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin: 0;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 20, 22, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.modal {
+  background: #fff;
+  border-radius: 14px;
+  padding: 24px;
+  width: min(480px, 90vw);
+  max-height: 85vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.modal h3 {
+  margin: 0;
+}
+
+.modal label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  color: #444;
+}
+
+.modal label.row {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modal textarea {
+  font-family: inherit;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  min-height: 70px;
+  resize: vertical;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+}

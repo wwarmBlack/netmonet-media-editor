@@ -4,6 +4,7 @@ import type Konva from 'konva';
 import type { ProductDef, FaceDef } from './layout-types';
 import { nextId, type Layer, type TextLayer, type ImageLayer } from './layers';
 import { useHtmlImage } from './useImage';
+import BatchModal from './BatchModal';
 
 const TARGET_DPI = 300;
 const PT_PER_MM = 2.8346456693;
@@ -164,6 +165,43 @@ function buildGridLayout(product: ProductDef): { w: number; h: number; layers: L
   return { w: (maxCol + 1) * stepX - STACK_GAP, h: (maxRow + 1) * stepY - STACK_GAP, layers: merged };
 }
 
+interface SavedSession {
+  sizePx: { w: number; h: number };
+  layers: Layer[];
+}
+
+function sessionKey(productId: string, isCombined: boolean, faceIndex: number) {
+  return `menu-editor-session:${productId}:${isCombined ? 'all' : faceIndex}`;
+}
+
+function loadSession(key: string): SavedSession | null {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed || !Array.isArray(parsed.layers) || !parsed.sizePx) return null;
+    return parsed as SavedSession;
+  } catch {
+    return null;
+  }
+}
+
+function saveSession(key: string, data: SavedSession) {
+  try {
+    localStorage.setItem(key, JSON.stringify(data));
+  } catch {
+    // quota exceeded (large embedded images) — editing still works, it just won't survive a reload
+  }
+}
+
+function clearSession(key: string) {
+  try {
+    localStorage.removeItem(key);
+  } catch {
+    /* ignore */
+  }
+}
+
 export default function Editor({ product, onBack }: { product: ProductDef; onBack: () => void }) {
   const isStacked = !!product.stackedFaces;
   const isGrid = !!product.gridLayout;
@@ -171,20 +209,21 @@ export default function Editor({ product, onBack }: { product: ProductDef; onBac
   const [faceIndex, setFaceIndex] = useState(0);
   const face = product.faces[faceIndex];
 
-  const initial = isStacked
-    ? buildStackedLayout(product)
-    : isGrid
-      ? buildGridLayout(product)
-      : { w: face.widthPx * EDIT_SCALE, h: face.heightPx * EDIT_SCALE, layers: null as Layer[] | null };
+  const buildDefault = () =>
+    isStacked ? buildStackedLayout(product) : isGrid ? buildGridLayout(product) : { w: face.widthPx * EDIT_SCALE, h: face.heightPx * EDIT_SCALE, layers: buildLayersFromFace(face, face.widthPx * EDIT_SCALE, face.heightPx * EDIT_SCALE) };
+
+  const savedInitial = loadSession(sessionKey(product.id, isCombined, 0));
+  const initial = savedInitial ? { w: savedInitial.sizePx.w, h: savedInitial.sizePx.h, layers: savedInitial.layers } : buildDefault();
 
   const [sizePx, setSizePx] = useState({ w: initial.w, h: initial.h });
   const w = sizePx.w;
   const h = sizePx.h;
   const sizeMm = { w: w / PT_PER_MM / EDIT_SCALE, h: h / PT_PER_MM / EDIT_SCALE };
 
-  const [layers, setLayers] = useState<Layer[]>(() => initial.layers ?? buildLayersFromFace(face, w, h));
+  const [layers, setLayers] = useState<Layer[]>(() => initial.layers);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [editingText, setEditingText] = useState<TextLayer | null>(null);
+  const skipNextSave = useRef(true);
 
   const stageRef = useRef<Konva.Stage | null>(null);
   const transformerRef = useRef<Konva.Transformer | null>(null);
@@ -203,6 +242,15 @@ export default function Editor({ product, onBack }: { product: ProductDef; onBac
   }, [product.id]);
 
   useEffect(() => {
+    skipNextSave.current = true;
+    const saved = loadSession(sessionKey(product.id, isCombined, faceIndex));
+    if (saved) {
+      setSizePx(saved.sizePx);
+      setLayers(saved.layers);
+      setSelectedId(null);
+      prevSize.current = saved.sizePx;
+      return;
+    }
     if (isStacked || isGrid) {
       const combined = isStacked ? buildStackedLayout(product) : buildGridLayout(product);
       setSizePx({ w: combined.w, h: combined.h });
@@ -219,6 +267,30 @@ export default function Editor({ product, onBack }: { product: ProductDef; onBac
     prevSize.current = { w: fw, h: fh };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [product.id, faceIndex]);
+
+  const batchRunningRef = useRef(false);
+
+  useEffect(() => {
+    if (skipNextSave.current) {
+      skipNextSave.current = false;
+      return;
+    }
+    if (batchRunningRef.current) return;
+    const key = sessionKey(product.id, isCombined, faceIndex);
+    const timer = setTimeout(() => saveSession(key, { sizePx, layers }), 400);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [layers, sizePx]);
+
+  function resetToDefault() {
+    clearSession(sessionKey(product.id, isCombined, faceIndex));
+    const def = buildDefault();
+    skipNextSave.current = true;
+    setSizePx({ w: def.w, h: def.h });
+    setLayers(def.layers);
+    setSelectedId(null);
+    prevSize.current = { w: def.w, h: def.h };
+  }
 
   const [fitScale, setFitScale] = useState(1);
 
@@ -280,12 +352,49 @@ export default function Editor({ product, onBack }: { product: ProductDef; onBac
     setSelectedId(null);
   }
 
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [removingBg, setRemovingBg] = useState(false);
+  const [showBatch, setShowBatch] = useState(false);
+
   function handleFileToLayer(id: string, file: File) {
+    setUploadError(null);
+    if (file.size > 25 * 1024 * 1024) {
+      setUploadError('Файл больше 25 МБ — выберите файл поменьше.');
+      return;
+    }
     const reader = new FileReader();
+    reader.onerror = () => setUploadError('Не удалось прочитать файл. Попробуйте другой формат (PNG/JPG/SVG).');
     reader.onload = () => {
-      updateLayer(id, { src: reader.result as string } as Partial<ImageLayer>);
+      const dataUrl = reader.result as string;
+      // verify the browser can actually decode it before committing — catches HEIC/unsupported formats
+      const probe = new window.Image();
+      probe.onload = () => updateLayer(id, { src: dataUrl } as Partial<ImageLayer>);
+      probe.onerror = () =>
+        setUploadError('Браузер не смог открыть это изображение. Попробуйте PNG, JPG, WEBP или SVG.');
+      probe.src = dataUrl;
     };
     reader.readAsDataURL(file);
+  }
+
+  async function handleRemoveBackground(id: string, src: string) {
+    setUploadError(null);
+    setRemovingBg(true);
+    try {
+      const { removeBackground } = await import('@imgly/background-removal');
+      const resultBlob = await removeBackground(src);
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(resultBlob);
+      });
+      updateLayer(id, { src: dataUrl } as Partial<ImageLayer>);
+    } catch (err) {
+      console.error(err);
+      setUploadError('Не получилось убрать фон у этого изображения. Попробуйте другой файл.');
+    } finally {
+      setRemovingBg(false);
+    }
   }
 
   function exportPng() {
@@ -347,10 +456,30 @@ export default function Editor({ product, onBack }: { product: ProductDef; onBac
           </label>
         )}
 
+        <button className="ghost" onClick={resetToDefault}>
+          Сбросить макет
+        </button>
+
         <button className="primary" onClick={exportPng}>
           Скачать PNG
         </button>
+
+        <button className="primary" onClick={() => setShowBatch(true)}>
+          Макет готов
+        </button>
       </div>
+
+      {showBatch && (
+        <BatchModal
+          templateLayers={layers}
+          stageRef={stageRef}
+          pixelRatio={TARGET_DPI / 72 / EDIT_SCALE}
+          filePrefix={product.id}
+          onClose={() => setShowBatch(false)}
+          onApplyLayers={setLayers}
+          onBusyChange={(busy) => (batchRunningRef.current = busy)}
+        />
+      )}
 
       <div className="workspace">
         <div className="canvas-wrap" ref={containerRef}>
@@ -517,6 +646,39 @@ export default function Editor({ product, onBack }: { product: ProductDef; onBac
           {selectedLayer?.kind === 'image' && (
             <div className="props">
               <h4>{selectedLayer.label}</h4>
+              {(selectedLayer.decorative || selectedLayer.label === 'Фон') && (
+                <label>
+                  Цвет фона слоя
+                  <div className="color-row">
+                    <input
+                      type="color"
+                      value={selectedLayer.fill ?? '#ffffff'}
+                      onChange={(e) =>
+                        updateLayer(selectedLayer.id, { fill: e.target.value, src: null } as Partial<ImageLayer>)
+                      }
+                    />
+                    <input
+                      type="text"
+                      className="hex-input"
+                      value={selectedLayer.fill ?? ''}
+                      placeholder="#RRGGBB"
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        updateLayer(selectedLayer.id, { fill: v } as Partial<ImageLayer>);
+                        if (/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(v)) {
+                          updateLayer(selectedLayer.id, { src: null } as Partial<ImageLayer>);
+                        }
+                      }}
+                      onBlur={(e) => {
+                        if (!/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(e.target.value)) {
+                          updateLayer(selectedLayer.id, { fill: selectedLayer.fill ?? '#ffffff' } as Partial<ImageLayer>);
+                        }
+                      }}
+                    />
+                  </div>
+                  {selectedLayer.src && <p className="hint">У слоя есть изображение — оно перекрывает цвет, пока вы его не поменяете или не выберете новый цвет.</p>}
+                </label>
+              )}
               <label>
                 Прозрачность
                 <input
@@ -538,10 +700,20 @@ export default function Editor({ product, onBack }: { product: ProductDef; onBac
                   onChange={(e) => e.target.files?.[0] && handleFileToLayer(selectedLayer.id, e.target.files[0])}
                 />
               </label>
+              {uploadError && selectedLayer && <p className="error-text">{uploadError}</p>}
               {selectedLayer.src && (
-                <button className="ghost" onClick={() => updateLayer(selectedLayer.id, { src: null } as Partial<ImageLayer>)}>
-                  Убрать изображение
-                </button>
+                <>
+                  <button
+                    className="ghost full"
+                    disabled={removingBg}
+                    onClick={() => handleRemoveBackground(selectedLayer.id, selectedLayer.src!)}
+                  >
+                    {removingBg ? 'Убираю фон…' : 'Убрать фон с изображения'}
+                  </button>
+                  <button className="ghost" onClick={() => updateLayer(selectedLayer.id, { src: null } as Partial<ImageLayer>)}>
+                    Убрать изображение
+                  </button>
+                </>
               )}
               <button className="danger" onClick={deleteSelected}>
                 Удалить слой
