@@ -243,6 +243,7 @@ export default function Editor({ product, onBack }: { product: ProductDef; onBac
 
   useEffect(() => {
     skipNextSave.current = true;
+    setPast([]);
     const saved = loadSession(sessionKey(product.id, isCombined, faceIndex));
     if (saved) {
       setSizePx(saved.sizePx);
@@ -286,6 +287,7 @@ export default function Editor({ product, onBack }: { product: ProductDef; onBac
     clearSession(sessionKey(product.id, isCombined, faceIndex));
     const def = buildDefault();
     skipNextSave.current = true;
+    setPast([]);
     setSizePx({ w: def.w, h: def.h });
     setLayers(def.layers);
     setSelectedId(null);
@@ -311,6 +313,7 @@ export default function Editor({ product, onBack }: { product: ProductDef; onBac
   }, [w, h]);
 
   function applySizeChange(newWmm: number) {
+    pushHistory();
     const newW = newWmm * PT_PER_MM * EDIT_SCALE;
     const ratio = newW / prevSize.current.w;
     const newH = prevSize.current.h * ratio;
@@ -342,12 +345,54 @@ export default function Editor({ product, onBack }: { product: ProductDef; onBac
 
   const selectedLayer = useMemo(() => layers.find((l) => l.id === selectedId) ?? null, [layers, selectedId]);
 
+  // single-level-per-click undo: rapid edits (e.g. typing) within the same short window coalesce
+  // into one history entry so one Undo click reverts one "action", not one keystroke
+  const [past, setPast] = useState<{ layers: Layer[]; sizePx: { w: number; h: number } }[]>([]);
+  const lastPushRef = useRef(0);
+
+  function pushHistory() {
+    const now = Date.now();
+    if (now - lastPushRef.current > 800) {
+      setPast((p) => [...p.slice(-19), { layers, sizePx }]);
+    }
+    lastPushRef.current = now;
+  }
+
+  function undo() {
+    setPast((p) => {
+      if (p.length === 0) return p;
+      const last = p[p.length - 1];
+      setLayers(last.layers);
+      setSizePx(last.sizePx);
+      prevSize.current = last.sizePx;
+      setSelectedId(null);
+      return p.slice(0, -1);
+    });
+  }
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      const typing = target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable);
+      if (typing) return;
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+        e.preventDefault();
+        undo();
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [past]);
+
   function updateLayer(id: string, patch: Partial<Layer>) {
+    pushHistory();
     setLayers((prev) => prev.map((l) => (l.id === id ? ({ ...l, ...patch } as Layer) : l)));
   }
 
   function deleteSelected() {
     if (!selectedId) return;
+    pushHistory();
     setLayers((prev) => prev.filter((l) => l.id !== selectedId));
     setSelectedId(null);
   }
@@ -456,6 +501,10 @@ export default function Editor({ product, onBack }: { product: ProductDef; onBac
           </label>
         )}
 
+        <button className="ghost" onClick={undo} disabled={past.length === 0} title="Ctrl+Z">
+          ↶ Отменить
+        </button>
+
         <button className="ghost" onClick={resetToDefault}>
           Сбросить макет
         </button>
@@ -478,6 +527,7 @@ export default function Editor({ product, onBack }: { product: ProductDef; onBac
           onClose={() => setShowBatch(false)}
           onApplyLayers={setLayers}
           onBusyChange={(busy) => (batchRunningRef.current = busy)}
+          onDeselect={() => setSelectedId(null)}
         />
       )}
 
@@ -740,6 +790,7 @@ export default function Editor({ product, onBack }: { product: ProductDef; onBac
                   fill: '#1c1c1c',
                   rotation: 0,
                 };
+                pushHistory();
                 setLayers((prev) => [...prev, t]);
                 setSelectedId(t.id);
               }}
@@ -762,6 +813,7 @@ export default function Editor({ product, onBack }: { product: ProductDef; onBac
                   rotation: 0,
                   opacity: 1,
                 };
+                pushHistory();
                 setLayers((prev) => [...prev, img]);
                 setSelectedId(img.id);
               }}

@@ -90,6 +90,22 @@ const RINGS: Record<string, string> = {
   'naklejka-black': '/layers/rings-dark.svg',
 };
 
+// the QR is the one thing on every macro that must stay reliably scannable — bump it up a bit
+// from the source file's own (fairly conservative) proportions, growing from its own center.
+const QR_SCALE = 1.15;
+
+function enlargeQr<T extends FaceDef>(f: T): T {
+  return {
+    ...f,
+    layers: f.layers.map((l) => {
+      if (l.kind !== 'image' || l.label !== 'QR-код') return l;
+      const newW = l.wf * QR_SCALE;
+      const newH = l.hf * QR_SCALE;
+      return { ...l, xf: l.xf - (newW - l.wf) / 2, yf: l.yf - (newH - l.hf) / 2, wf: newW, hf: newH };
+    }),
+  };
+}
+
 export const PRODUCTS: ProductDef[] = ORDER.map((id) => {
   let generated = (GENERATED_FACES[id] ?? []).map((f) => ({ ...f, label: FACE_LABELS[f.id] ?? f.id }));
   const extra = EXTRA_FACES[id] ?? [];
@@ -116,6 +132,8 @@ export const PRODUCTS: ProductDef[] = ORDER.map((id) => {
       ],
     }));
   }
+
+  generated = generated.map(enlargeQr);
 
   let faces = [...generated, ...extra.filter((f) => f.id === 'back')];
   if (id === 'amfora') {

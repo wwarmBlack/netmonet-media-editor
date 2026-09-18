@@ -19,6 +19,7 @@ export default function BatchModal({
   onClose,
   onApplyLayers,
   onBusyChange,
+  onDeselect,
 }: {
   templateLayers: Layer[];
   stageRef: React.RefObject<Konva.Stage | null>;
@@ -27,6 +28,7 @@ export default function BatchModal({
   onClose: () => void;
   onApplyLayers: (layers: Layer[]) => void;
   onBusyChange?: (busy: boolean) => void;
+  onDeselect: () => void;
 }) {
   const [files, setFiles] = useState<File[]>([]);
   const [numbering, setNumbering] = useState('');
@@ -51,6 +53,8 @@ export default function BatchModal({
 
     setBusy(true);
     onBusyChange?.(true);
+    onDeselect();
+    await wait(60); // let the Transformer detach and redraw before we start capturing frames
     try {
       const qrSources = await readQrSources(files);
       if (qrSources.length === 0) {
@@ -110,7 +114,9 @@ export default function BatchModal({
         await wait(40);
 
         const dataUrl = stage.toDataURL({ pixelRatio, mimeType: 'image/png' });
-        results.push({ fileName: `${filePrefix}-${label}.png`, dataUrl, number: label, qrName: qr.name });
+        const qrNumMatch = /(\d+)/.exec(qr.name);
+        const qrNum = qrNumMatch ? qrNumMatch[1].padStart(Math.max(2, qrNumMatch[1].length), '0') : '00';
+        results.push({ fileName: `QR_${qrNum}_${label}.png`, dataUrl, number: label, qrName: qr.name });
         setProgress({ done: i + 1, total: pairs.length });
       }
 
