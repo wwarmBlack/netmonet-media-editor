@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type Konva from 'konva';
 import type { Layer, TextLayer, ImageLayer } from './layers';
-import { parseNumberRanges, padNumber, readQrSources, loadImage, type QrSource } from './batch';
+import { parseNumberRanges, padNumber, readQrSources, prepareQrForSlot, loadImage, type QrSource } from './batch';
 
 const NUMBERING_RE = /^\d{1,3}$/;
 
@@ -56,7 +56,9 @@ export default function BatchModal({
     onDeselect();
     await wait(60); // let the Transformer detach and redraw before we start capturing frames
     try {
-      const qrSources = await readQrSources(files);
+      const rawSources = await readQrSources(files);
+      const qrSources: QrSource[] = [];
+      for (const raw of rawSources) qrSources.push({ ...raw, dataUrl: await prepareQrForSlot(raw) });
       if (qrSources.length === 0) {
         setError('В загруженном файле не нашлось изображений QR-кодов.');
         return;

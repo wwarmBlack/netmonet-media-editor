@@ -1,6 +1,8 @@
 export interface QrSource {
   name: string;
   dataUrl: string;
+  /** vector twin (same base name) if the archive has one — rasterized sharper than the PNG */
+  svgDataUrl?: string;
 }
 
 /** Parses "1-10, 15-19, 21-26" (also accepts single numbers and newlines) into an ordered list. */
@@ -92,15 +94,19 @@ export async function readQrSources(files: File[]): Promise<QrSource[]> {
   if (files.length === 1 && /\.zip$/i.test(files[0].name)) {
     const JSZip = (await import('jszip')).default;
     const zip = await JSZip.loadAsync(files[0]);
-    const entries = dedupeByBaseName(
-      Object.values(zip.files)
-        .filter((f) => !f.dir && IMAGE_EXT.test(f.name))
-        .map((f) => ({ name: f.name.split('/').pop() ?? f.name, entry: f })),
-    );
+    const all = Object.values(zip.files)
+      .filter((f) => !f.dir && IMAGE_EXT.test(f.name))
+      .map((f) => ({ name: f.name.split('/').pop() ?? f.name, entry: f }));
+    const entries = dedupeByBaseName(all);
     const out: QrSource[] = [];
     for (const { name, entry } of entries) {
       const blob = await entry.async('blob');
-      out.push({ name, dataUrl: await fileToDataUrl(blob) });
+      const svgTwin = all.find((a) => baseName(a.name) === baseName(name) && /\.svg$/i.test(a.name));
+      out.push({
+        name,
+        dataUrl: await fileToDataUrl(blob),
+        svgDataUrl: svgTwin ? await fileToDataUrl(new Blob([await svgTwin.entry.async('arraybuffer')], { type: 'image/svg+xml' })) : undefined,
+      });
     }
     return out;
   }
@@ -127,4 +133,57 @@ export function loadImage(src: string, timeoutMs = 8000): Promise<HTMLImageEleme
     };
     img.src = src;
   });
+}
+
+/**
+ * QR exports ship with their own built-in white margin (often 4+ modules), which makes the
+ * actual black pattern look small once dropped into a slot that already sits on a white
+ * backing. Rasterize (SVG when available, for crisp edges), crop to the dark modules, and
+ * re-pad with a small quiet zone so the code fills its slot.
+ */
+export async function prepareQrForSlot(src: QrSource): Promise<string> {
+  const source = src.svgDataUrl ?? src.dataUrl;
+  const img = await loadImage(source);
+  const nat = Math.max(img.naturalWidth || 300, img.naturalHeight || 300);
+  const base = src.svgDataUrl ? 1600 : nat;
+  const aspect = (img.naturalWidth || 1) / (img.naturalHeight || 1);
+  const w = aspect >= 1 ? base : Math.round(base * aspect);
+  const h = aspect >= 1 ? Math.round(base / aspect) : base;
+
+  const c = document.createElement('canvas');
+  c.width = w;
+  c.height = h;
+  const ctx = c.getContext('2d')!;
+  ctx.imageSmoothingEnabled = !!src.svgDataUrl;
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, w, h);
+  ctx.drawImage(img, 0, 0, w, h);
+
+  const data = ctx.getImageData(0, 0, w, h).data;
+  let minX = w, minY = h, maxX = -1, maxY = -1;
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const i = (y * w + x) * 4;
+      if (data[i] + data[i + 1] + data[i + 2] < 3 * 110) {
+        if (x < minX) minX = x;
+        if (x > maxX) maxX = x;
+        if (y < minY) minY = y;
+        if (y > maxY) maxY = y;
+      }
+    }
+  }
+  if (maxX < 0) return src.dataUrl;
+
+  const cw = maxX - minX + 1;
+  const ch = maxY - minY + 1;
+  const side = Math.max(cw, ch);
+  const pad = Math.round(side * 0.055);
+  const out = document.createElement('canvas');
+  out.width = out.height = side + pad * 2;
+  const octx = out.getContext('2d')!;
+  octx.fillStyle = '#fff';
+  octx.fillRect(0, 0, out.width, out.height);
+  octx.imageSmoothingEnabled = false;
+  octx.drawImage(c, minX, minY, cw, ch, pad + (side - cw) / 2, pad + (side - ch) / 2, cw, ch);
+  return out.toDataURL('image/png');
 }
