@@ -24,8 +24,11 @@ function knockOutWhite(img: HTMLImageElement): HTMLCanvasElement {
 
 /** Repaint every visible pixel with one color, keeping the layer's shape (alpha) intact. */
 function tintImage(img: HTMLImageElement, color: string): HTMLCanvasElement {
-  const w = img.naturalWidth || img.width;
-  const h = img.naturalHeight || img.height;
+  // vector sources report a tiny natural size (their viewBox); rasterize at print resolution so edges stay crisp
+  const base = Math.max(img.naturalWidth || img.width, img.naturalHeight || img.height) || 1;
+  const up = Math.max(1, Math.min(20, 3200 / base));
+  const w = (img.naturalWidth || img.width) * up;
+  const h = (img.naturalHeight || img.height) * up;
   const c = document.createElement('canvas');
   c.width = w;
   c.height = h;
