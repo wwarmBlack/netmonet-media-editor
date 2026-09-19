@@ -90,7 +90,27 @@ export default function BatchModal({
       }
 
       const qrImageCache = new Map<string, HTMLImageElement>();
-      const results: { fileName: string; dataUrl: string; number: string; qrName: string }[] = [];
+      let results: { fileName: string; dataUrl: string; number: string; qrName: string }[] = [];
+      // big batches are cut into several zips so the browser never holds the whole run in memory
+      const CHUNK = 250;
+      const parts = Math.ceil(pairs.length / CHUNK);
+      let partNo = 0;
+      const JSZip = (await import('jszip')).default;
+      const flush = async () => {
+        if (results.length === 0) return;
+        partNo += 1;
+        const zip = new JSZip();
+        for (const r of results) zip.file(r.fileName, r.dataUrl.split(',')[1], { base64: true });
+        zip.file('соответствие-номеров.txt', results.map((r) => `Макет №${r.number} — QR-код: ${r.qrName}`).join('\n'));
+        const blob = await zip.generateAsync({ type: 'blob' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = parts > 1 ? `${filePrefix}-partiya-${partNo}-iz-${parts}.zip` : `${filePrefix}-partiya.zip`;
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 10000);
+        results = [];
+      };
       setProgress({ done: 0, total: pairs.length });
 
       for (let i = 0; i < pairs.length; i++) {
@@ -120,26 +140,11 @@ export default function BatchModal({
         const qrNum = qrNumMatch ? qrNumMatch[1].padStart(Math.max(2, qrNumMatch[1].length), '0') : '00';
         results.push({ fileName: `QR_${qrNum}_${label}.png`, dataUrl, number: label, qrName: qr.name });
         setProgress({ done: i + 1, total: pairs.length });
+        if (results.length >= CHUNK) await flush();
       }
 
       onApplyLayers(templateLayers);
-
-      const JSZip = (await import('jszip')).default;
-      const zip = new JSZip();
-      for (const r of results) {
-        const base64 = r.dataUrl.split(',')[1];
-        zip.file(r.fileName, base64, { base64: true });
-      }
-      const manifest = results.map((r) => `Макет №${r.number} — QR-код: ${r.qrName}`).join('\n');
-      zip.file('соответствие-номеров.txt', manifest);
-
-      const blob = await zip.generateAsync({ type: 'blob' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${filePrefix}-partiya.zip`;
-      a.click();
-      URL.revokeObjectURL(url);
+      await flush();
     } catch (err) {
       console.error(err);
       setError('Что-то пошло не так при генерации. Попробуйте ещё раз.');

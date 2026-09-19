@@ -189,6 +189,35 @@ export const PRODUCTS: ProductDef[] = ORDER.map((id) => {
     }));
   }
 
+  // one recolorable "Фон" layer per macro: turn the source's own background shape into it,
+  // and keep the remaining artwork (logo) untouched by the color control.
+  const BG_FROM_SOURCE: Record<string, { bgId: string; color: string; asShape: boolean; drop?: string[]; logoId?: string }> = {
+    onix: { bgId: 'deco13', color: '#dadada', asShape: true, logoId: 'deco14' },
+    karelia: { bgId: 'deco42', color: '#c6c6c6', asShape: false, drop: ['deco43'] },
+    arktika: { bgId: '', color: '', asShape: false, logoId: 'deco22' },
+  };
+  const bgRule = BG_FROM_SOURCE[id];
+  if (bgRule) {
+    generated = generated.map((f) => ({
+      ...f,
+      layers: f.layers
+        .filter((l) => !bgRule.drop?.includes(l.id))
+        .map((l) => {
+          if (l.kind !== 'image') return l;
+          if (l.id === bgRule.bgId) {
+            return {
+              ...l,
+              label: 'Фон',
+              fill: bgRule.color,
+              defaultSrc: bgRule.asShape ? l.defaultSrc : null,
+            };
+          }
+          if (l.id === bgRule.logoId) return { ...l, label: 'Логотип' };
+          return l;
+        }),
+    }));
+  }
+
   generated = generated.map((f) => enlargeQr(f, id));
 
   let faces = [...generated, ...extra.filter((f) => f.id === 'back')];

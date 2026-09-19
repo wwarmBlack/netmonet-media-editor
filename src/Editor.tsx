@@ -703,7 +703,7 @@ export default function Editor({ product, onBack }: { product: ProductDef; onBac
           {selectedLayer?.kind === 'image' && (
             <div className="props">
               <h4>{selectedLayer.label}</h4>
-              {(selectedLayer.decorative || selectedLayer.label === 'Фон') && (
+              {selectedLayer.label === 'Фон' && (
                 <label>
                   Цвет фона слоя
                   <div className="color-row">
