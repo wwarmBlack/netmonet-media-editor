@@ -94,16 +94,72 @@ const RINGS: Record<string, string> = {
 // from the source file's own (fairly conservative) proportions, growing from its own center.
 const QR_SCALE = 1.15;
 
-function enlargeQr<T extends FaceDef>(f: T): T {
-  return {
-    ...f,
-    layers: f.layers.map((l) => {
-      if (l.kind !== 'image' || l.label !== 'QR-код') return l;
-      const newW = l.wf * QR_SCALE;
-      const newH = l.hf * QR_SCALE;
-      return { ...l, xf: l.xf - (newW - l.wf) / 2, yf: l.yf - (newH - l.hf) / 2, wf: newW, hf: newH };
-    }),
-  };
+// Products whose real design shows the QR on a white frame. In the source that "frame" is just
+// the QR picture's own white square (sharp corners), so give it a proper rounded white panel
+// (like Azau's) and let the QR itself be transparent on top of it. panelScale = panel size
+// relative to the source QR box; Onyx keeps the source size (growing it covers its own artwork).
+const QR_PANEL: Record<string, { panelScale: number }> = {
+  onix: { panelScale: 1.0 },
+  karelia: { panelScale: 1.15 },
+  'naklejka-white': { panelScale: 1.15 },
+  'naklejka-black': { panelScale: 1.15 },
+};
+const PANEL_RADIUS_F = 0.09;
+const QR_IN_PANEL = 0.9;
+
+function enlargeQr<T extends FaceDef>(f: T, id: string): T {
+  const qr = f.layers.find((l) => l.kind === 'image' && l.label === 'QR-код');
+  if (!qr || qr.kind !== 'image') return f;
+  const panel = QR_PANEL[id];
+  const boxScale = panel ? panel.panelScale : QR_SCALE;
+  const boxW = qr.wf * boxScale;
+  const boxH = qr.hf * boxScale;
+  const boxX = qr.xf - (boxW - qr.wf) / 2;
+  const boxY = qr.yf - (boxH - qr.hf) / 2;
+  const dX = (boxW - qr.wf) / 2;
+  const qrLeft = qr.xf;
+  const qrRight = qr.xf + qr.wf;
+
+  const layers: T['layers'] = [];
+  for (const l of f.layers) {
+    if (l === qr) {
+      if (panel) {
+        layers.push({
+          kind: 'image',
+          id: 'qr-panel',
+          label: 'Подложка QR',
+          xf: boxX,
+          yf: boxY,
+          wf: boxW,
+          hf: boxH,
+          defaultSrc: null,
+          opacity: 1,
+          decorative: true,
+          fill: '#ffffff',
+          cornerRadiusF: PANEL_RADIUS_F,
+        });
+        const w = boxW * QR_IN_PANEL;
+        const h = boxH * QR_IN_PANEL;
+        layers.push({ ...l, xf: boxX + (boxW - w) / 2, yf: boxY + (boxH - h) / 2, wf: w, hf: h });
+      } else {
+        layers.push({ ...l, xf: boxX, yf: boxY, wf: boxW, hf: boxH });
+      }
+      continue;
+    }
+    // vertical serial numbers hugging the QR's left/right edge move out with the box's edge
+    if (l.kind === 'text' && Math.abs(Math.abs(l.rotation ?? 0) - 90) < 1) {
+      if (Math.abs(l.xf - qrLeft) < 0.12 && l.xf < qrLeft + 0.03) {
+        layers.push({ ...l, xf: l.xf - dX });
+        continue;
+      }
+      if (Math.abs(l.xf - qrRight) < 0.12 && l.xf > qrRight - 0.03) {
+        layers.push({ ...l, xf: l.xf + dX });
+        continue;
+      }
+    }
+    layers.push(l);
+  }
+  return { ...f, layers };
 }
 
 export const PRODUCTS: ProductDef[] = ORDER.map((id) => {
@@ -133,7 +189,7 @@ export const PRODUCTS: ProductDef[] = ORDER.map((id) => {
     }));
   }
 
-  generated = generated.map(enlargeQr);
+  generated = generated.map((f) => enlargeQr(f, id));
 
   let faces = [...generated, ...extra.filter((f) => f.id === 'back')];
   if (id === 'amfora') {

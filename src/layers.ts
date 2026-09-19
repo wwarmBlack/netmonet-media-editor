@@ -26,6 +26,7 @@ export interface ImageLayer {
   opacity: number;
   decorative?: boolean;
   fill?: string;
+  cornerRadiusF?: number;
 }
 
 export type Layer = TextLayer | ImageLayer;

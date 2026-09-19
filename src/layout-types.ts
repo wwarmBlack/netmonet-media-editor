@@ -30,6 +30,8 @@ export interface ImageSpec {
   decorative?: boolean;
   /** solid color shown while there's no image (or as a plain color layer, e.g. a page background) */
   fill?: string;
+  /** rounded corners, as a fraction of the shorter side */
+  cornerRadiusF?: number;
 }
 
 export type LayerSpec = TextSpec | ImageSpec;

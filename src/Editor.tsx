@@ -59,6 +59,7 @@ function buildLayersFromFace(face: FaceDef, w: number, h: number): Layer[] {
       opacity: spec.opacity,
       decorative: spec.decorative,
       fill: spec.fill,
+      cornerRadiusF: spec.cornerRadiusF,
     };
     return layer;
   });
@@ -77,7 +78,8 @@ function ImageLayerNode({
   registerRef: (id: string, node: Konva.Node | null) => void;
   onChange: (patch: Partial<ImageLayer>) => void;
 }) {
-  const img = useHtmlImage(layer.src);
+  const tintOk = !!layer.fill && /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(layer.fill);
+  const img = useHtmlImage(layer.src, { knockOutWhite: layer.label === 'QR-код', tint: tintOk && layer.src ? layer.fill : undefined });
 
   return (
     <Group
@@ -108,7 +110,12 @@ function ImageLayerNode({
       {img ? (
         <KonvaImage image={img} width={layer.width} height={layer.height} />
       ) : layer.fill ? (
-        <Rect width={layer.width} height={layer.height} fill={layer.fill} />
+        <Rect
+          width={layer.width}
+          height={layer.height}
+          fill={layer.fill}
+          cornerRadius={(layer.cornerRadiusF ?? 0) * Math.min(layer.width, layer.height)}
+        />
       ) : (
         <Rect
           width={layer.width}
@@ -704,7 +711,7 @@ export default function Editor({ product, onBack }: { product: ProductDef; onBac
                       type="color"
                       value={selectedLayer.fill ?? '#ffffff'}
                       onChange={(e) =>
-                        updateLayer(selectedLayer.id, { fill: e.target.value, src: null } as Partial<ImageLayer>)
+                        updateLayer(selectedLayer.id, { fill: e.target.value } as Partial<ImageLayer>)
                       }
                     />
                     <input
@@ -715,9 +722,6 @@ export default function Editor({ product, onBack }: { product: ProductDef; onBac
                       onChange={(e) => {
                         const v = e.target.value;
                         updateLayer(selectedLayer.id, { fill: v } as Partial<ImageLayer>);
-                        if (/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(v)) {
-                          updateLayer(selectedLayer.id, { src: null } as Partial<ImageLayer>);
-                        }
                       }}
                       onBlur={(e) => {
                         if (!/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(e.target.value)) {
@@ -726,7 +730,7 @@ export default function Editor({ product, onBack }: { product: ProductDef; onBac
                       }}
                     />
                   </div>
-                  {selectedLayer.src && <p className="hint">У слоя есть изображение — оно перекрывает цвет, пока вы его не поменяете или не выберете новый цвет.</p>}
+                  
                 </label>
               )}
               <label>

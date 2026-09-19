@@ -123,6 +123,17 @@ function niceLabel(id, fallback) {
   return LABELS[id] || id.replace(/_/g, ' ');
 }
 
+// The source files sometimes carry the QR raster twice (once as the working copy, once inside the
+// backing-panel group). Anything still opaque inside a decorative snippet is a leftover copy.
+function stripQrCopies(node) {
+  if (!node || !node.querySelectorAll) return;
+  for (const im of node.querySelectorAll('image')) {
+    const om = /opacity:\s*([\d.]+)/.exec(im.getAttribute('style') || '');
+    const op = om ? parseFloat(om[1]) : 1;
+    if (op >= 0.9) im.remove();
+  }
+}
+
 function processFile(productId, faceId, filename) {
   const filePath = path.join(SRC_DIR, filename);
   const raw = readFileSync(filePath, 'utf-8');
@@ -314,6 +325,7 @@ function processFile(productId, faceId, filename) {
       }
     }
 
+    stripQrCopies(child);
     const snippet = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 ${vbW} ${vbH}">${styleBlockHtml}${defsHtml}${child.outerHTML}</svg>`;
     const fileName = `${productId}-${faceId}-deco${decoIndex}.svg`;
     writeFileSync(path.join(ASSET_DIR, fileName), snippet, 'utf-8');
@@ -393,10 +405,12 @@ function splitLogoFromWrapper(productId, faceId, filename, wrapperId) {
       const om = /opacity:\s*([\d.]+)/.exec(own.getAttribute('style') || '');
       if (om) opacity = parseFloat(om[1]);
     }
+    if (tag === 'image' && opacity >= 0.9) return; // exact stacked duplicate of the working QR
     const isLogo = tag === 'g' && child.querySelectorAll && child.querySelectorAll('polygon,path').length > 3;
     const label = isLogo ? 'Логотип' : opacity < 0.9 ? 'Тень' : 'Графика';
 
     extraIndex += 1;
+    stripQrCopies(child);
     const snippet = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 ${vbW} ${vbH}">${styleBlockHtml}${defsHtml}${child.outerHTML}</svg>`;
     const fileName = `${productId}-${faceId}-decoX${extraIndex}.svg`;
     writeFileSync(path.join(ASSET_DIR, fileName), snippet, 'utf-8');
